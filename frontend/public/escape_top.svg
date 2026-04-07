@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="445.96808"
+   height="34.781883"
+   viewBox="0 0 445.96807 34.781883"
+   version="1.1"
+   id="svg1"
+   sodipodi:docname="escape_top.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     inkscape:document-units="px">
+    <inkscape:page
+       x="0"
+       y="0"
+       width="445.96808"
+       height="34.781883"
+       id="page1"
+       margin="0"
+       bleed="0" />
+  </sodipodi:namedview>
+  <defs
+     id="defs1" />
+  <g
+     inkscape:label="Camada 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(-33.01596,-230.68675)">
+    <path
+       id="rect1"
+       style="fill:#ff1f23;fill-opacity:1;stroke:#760002;stroke-width:5.4348;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       d="M 74.100548,241.69654 35.73336,255.99927 v 6.75196 h 440.5332 v -6.75196 H 74.182579 Z" />
+    <text
+       xml:space="preserve"
+       style="font-size:21.971px;text-align:start;writing-mode:lr-tb;direction:ltr;text-anchor:start;fill:#ff1f23;fill-opacity:1;stroke:#760002;stroke-width:6.1176;stroke-dasharray:none;stroke-opacity:1;paint-order:stroke fill markers"
+       x="395.07199"
+       y="250.00409"
+       id="text3"><tspan
+         sodipodi:role="line"
+         id="tspan3"
+         x="395.07199"
+         y="250.00409"
+         style="font-style:normal;font-variant:normal;font-weight:800;font-stretch:normal;font-size:21.971px;font-family:'Rounded Mplus 1c';-inkscape-font-specification:'Rounded Mplus 1c, Ultra-Bold';font-variant-ligatures:normal;font-variant-caps:normal;font-variant-numeric:normal;font-variant-east-asian:normal;fill:#ff1f23;fill-opacity:1;stroke:#760002;stroke-width:6.1176;stroke-dasharray:none;stroke-opacity:1">ESCAPE</tspan></text>
+  </g>
+</svg>
