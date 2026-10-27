@@ -1,13 +1,25 @@
 const User = require('../models/User')
 const bcrypt = require('bcrypt')
 const jwt = require('jsonwebtoken')
+const { PLAYER_ID_REGEX, normalizePlayerId } = require('../utils/validators')
 
 const register = async (req, res) => {
   try {
-    const { playerId, displayName, email, password } = req.body
+    const { displayName, email, password } = req.body
+    const playerId = normalizePlayerId(req.body.playerId)
+
+    if (!PLAYER_ID_REGEX.test(playerId)) {
+      return res.status(400).json({ message: 'Player ID must have 3-20 characters: letters, numbers or underscore' })
+    }
+
+    if (typeof displayName !== 'string' || !displayName.trim() ||
+        typeof email !== 'string' || !email.trim() ||
+        typeof password !== 'string' || !password) {
+      return res.status(400).json({ message: 'displayName, email and password are required' })
+    }
 
     const existingUser = await User.findOne({
-      $or: [{ playerId }, { email }]
+      $or: [{ playerId }, { email: email.trim().toLowerCase() }]
     })
 
     if (existingUser) {
@@ -38,11 +50,12 @@ const register = async (req, res) => {
 
 const login = async (req, res) => {
   try {
-    const { playerId, password } = req.body
+    const { password } = req.body
+    const playerId = normalizePlayerId(req.body.playerId)
 
     const user = await User.findOne({ playerId })
 
-    if (!user) {
+    if (!user || typeof password !== 'string') {
       return res.status(401).json({ message: 'Invalid Player ID or password' })
     }
 

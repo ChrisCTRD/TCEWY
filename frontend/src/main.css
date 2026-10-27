@@ -17,3 +17,16 @@ body {
   color: var(--color-white);
   font-family: 'M PLUS Rounded 1c', sans-serif;
 }
+
+::-webkit-scrollbar {
+  width: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #ffffff;
+  border-radius: 3px;
+}

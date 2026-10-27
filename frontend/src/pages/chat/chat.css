@@ -1,0 +1,396 @@
+.shell {
+  position: fixed;
+  inset: 0;
+  background: #000;
+  overflow: hidden;
+}
+
+/* camada de conversa (fundo) */
+.talk {
+  position: absolute;
+  inset: 0;
+  transition: filter 0.35s ease, transform 0.35s ease;
+}
+.talk[data-blurred="true"] {
+  filter: blur(4px) brightness(0.45);
+  transform: scale(1.04);
+  pointer-events: none;
+}
+
+/* camada do Menu (overlay) */
+.menu {
+  /* janela cinza (onde aparece o blur), em % da tela: topo-esq, topo-dir, base-dir, base-esq.
+     Ajuste estes 4 pontos para mudar o ângulo/tamanho do retângulo. */
+  --win-tl: 4.7% 28.3%;
+  --win-tr: 85.6% 15.8%;
+  --win-br: 73.8% 86.7%;
+  --win-bl: 7.7% 92.8%;
+  --slide: calc(-300 * var(--u));   /* distância do slide-in da navbar */
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.25s ease, visibility 0.25s;
+}
+.menu[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* parte preta, em duas peças:
+   - frame: laterais + base (fixa)
+   - band: faixa de cima (também fixa; só os títulos fazem slide) */
+/* manchas de tinta sobre a janela: a imagem é branca, brightness(0) deixa preta */
+.menu__fx {
+  position: absolute; inset: 0; pointer-events: none;
+  background: url("/overlay/other002_04.png") center / 100% 100% no-repeat;
+  filter: brightness(0);
+}
+.menu__frame, .menu__band { position: absolute; inset: 0; background: #000; pointer-events: none; }
+.menu__frame {
+  clip-path: polygon(0 28.3%, var(--win-tl), var(--win-bl), var(--win-br), var(--win-tr), 100% 15.8%, 100% 100%, 0 100%);
+}
+.menu__band {
+  clip-path: polygon(0 0, 100% 0, 100% 15.8%, var(--win-tr), var(--win-tl), 0 28.3%);
+}
+
+/* ao ativar: THREADS/THOUGHTS/ARCHIVE fazem slide de cima pra baixo (com curva);
+   SOCIAL NETWORK/MENTAL NOTES só entram em fade. Ao desativar, só o fade do .menu. */
+.menu[data-open="true"] .chat-nav__tabs {
+  animation: nav-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+.menu[data-open="true"] .chat-nav__subtabs {
+  animation: nav-fade 0.4s ease both;
+}
+@keyframes nav-in {
+  from { transform: translateY(var(--slide)); }
+  to   { transform: translateY(0); }
+}
+@keyframes nav-fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ---------- fontes e tokens ---------- */
+@font-face {
+  font-family: "Vandalism";
+  src: url("/fonts/Vandalism.ttf") format("truetype"); /* ajuste o nome/extensão */
+  font-display: swap;
+}
+
+.shell {
+  --cyan: #27e8e8;
+  --u: min(0.052083vw, 0.092593vh);
+  font-family: "M PLUS Rounded 1c", system-ui, sans-serif;
+  color: #fff;
+}
+
+/* ---------- corpo do Menu (ocupa tudo; a navbar fica por cima) ---------- */
+.menu__body { position: absolute; inset: 0; }
+.menu__soon {
+  position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 2rem; font-weight: 800; opacity: 0.4;
+}
+.social { padding: 210px 40px 120px; } /* provisório, some quando o grafo entrar */
+
+/* ---------- navbar com fade ---------- */
+.chat-nav {
+  --k: 1.15; /* escala só da navbar: 1.0 menor, 1.3 maior */
+  position: absolute; top: 0; left: 0; right: 0; z-index: 2;
+  padding: calc(14 * var(--u) * var(--k)) 0 calc(64 * var(--u) * var(--k));
+  background: linear-gradient(to bottom, #000 0%, rgba(0, 0, 0, 0.92) 30%, rgba(0, 0, 0, 0) 100%);
+  pointer-events: none;
+}
+.chat-nav button { pointer-events: auto; }
+
+.chat-nav__tabs {
+  display: flex; justify-content: center; align-items: flex-end;
+  gap: calc(110 * var(--u) * var(--k));
+}
+
+.chat-tab {
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font-family: "Vandalism", sans-serif;
+  font-size: calc(44 * var(--u) * var(--k));
+  line-height: 1; letter-spacing: 0.02em;
+  color: #000;
+  -webkit-text-stroke: 0.16em #fff;
+  paint-order: stroke fill;
+  transition: transform 0.15s ease;
+}
+.chat-tab:hover { transform: translateY(-2px); }
+/* setas « » dos lados das abas: bounce para o lado da aba escolhida e volta */
+.chat-arrow {
+  --bx: calc(-22 * var(--u) * var(--k));        /* quanto a seta avança no bounce */
+  flex: none; align-self: center;
+  width: calc(64 * var(--u) * var(--k)); height: calc(60 * var(--u) * var(--k));
+  padding: 0; border: 0; background: none; cursor: pointer;
+  filter: drop-shadow(0.04em 0.04em 0 #6e6e6e);
+}
+.chat-arrow[data-side="right"] { --bx: calc(22 * var(--u) * var(--k)); }
+.chat-arrow svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.chat-arrow[data-side="right"] svg { transform: rotate(180deg); }
+.chat-arrow path { fill: none; stroke-linecap: round; stroke-linejoin: round; }
+.chat-arrow__outline { stroke: #000; stroke-width: 11; }
+.chat-arrow__fill    { stroke: #fff; stroke-width: 5; }
+.chat-arrow:hover .chat-arrow__fill { stroke: var(--cyan); }
+.chat-arrow[data-bounce] { animation: arrow-bounce 0.38s cubic-bezier(0.3, 0, 0.2, 1); }
+@keyframes arrow-bounce {
+  0%, 100% { transform: translateX(0); }
+  35%      { transform: translateX(var(--bx)); }
+}
+
+.chat-tab[data-active="true"] {
+  color: #fff;
+  -webkit-text-stroke-color: #000;
+  font-size: calc(58 * var(--u) * var(--k));
+  filter: drop-shadow(0.06em 0.06em 0 #6e6e6e);
+}
+
+.chat-nav__subtabs {
+  display: flex; justify-content: center;
+  gap: calc(26 * var(--u) * var(--k));
+  margin-top: calc(30 * var(--u) * var(--k));
+}
+.chat-subtab {
+  font: 700 calc(30 * var(--u) * var(--k)) "M PLUS Rounded 1c", sans-serif;
+  letter-spacing: 0.05em; color: #fff; cursor: pointer;
+  background: rgba(139, 139, 139, 0.22);
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  padding: 0.1em 1.4em;
+  transition: box-shadow 0.15s ease, border-color 0.15s ease;
+}
+.chat-subtab:hover { border-color: rgba(255, 255, 255, 0.8); }
+.chat-subtab[data-active="true"] {
+  border-color: #fff;
+  box-shadow: 0 0 0 3px var(--cyan), 0 0 18px 4px rgba(39, 232, 232, 0.55);
+}
+
+/* ---------- footer de opções (estilo NEO) ---------- */
+.chat-footer {
+  --bar-h: calc(76 * var(--u));   /* altura da faixa (a addbar sobe esse tanto) */
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  box-sizing: border-box; height: var(--bar-h);
+  display: flex; justify-content: flex-end; align-items: center;
+  gap: calc(34 * var(--u));
+  padding: 0 calc(40 * var(--u));
+  background: rgba(0, 0, 0, 0.5);   /* faixa preta translúcida na largura toda */
+  pointer-events: none;
+}
+.chat-footer button {
+  pointer-events: auto;
+  display: inline-flex; align-items: center; gap: 0.5em;
+  background: none; border: 0; cursor: pointer; color: #fff;
+  font: 700 calc(26 * var(--u)) "M PLUS Rounded 1c", sans-serif;
+  transition: color 0.12s ease;
+}
+.chat-footer button:hover { color: var(--cyan); }
+.chat-footer button[data-danger]:hover { color: #ff5566; }
+
+.glyph {
+  display: inline-grid; place-items: center;
+  width: 1.5em; height: 1.5em; border-radius: 50%;
+  border: 2px solid currentColor;
+  font-size: 0.72em; font-weight: 800; line-height: 1;
+}
+.glyph--filled { background: #fff; color: #000; border-color: #fff; }
+
+/* ---------- grafo ---------- */
+.social { position: absolute; inset: 0; }
+
+.graph {
+  position: absolute; inset: 0; overflow: hidden;
+
+  cursor: grab; touch-action: none; user-select: none;
+}
+.graph[data-dragging="true"] { cursor: grabbing; }
+
+.graph__stage {
+  position: absolute; left: 50%; top: 50%; width: 0; height: 0;
+  transform-origin: 0 0;
+  will-change: transform;
+  transition: none;
+}
+
+.graph[data-animate="true"][data-dragging="false"] .graph__stage {
+  transition: transform 0.38s cubic-bezier(0.22, 0.8, 0.25, 1);
+}
+
+.graph__lines {
+  position: absolute; left: 0; top: 0; overflow: visible; pointer-events: none;
+  filter: drop-shadow(0 0 4px rgba(39, 232, 232, 0.65));
+}
+.graph__lines line { stroke: var(--cyan); stroke-width: 5; stroke-linecap: round; }
+
+/* ---------- nós ---------- */
+.node {
+  --ring: var(--cyan);
+  position: absolute; width: 72px; height: 72px; margin: -36px 0 0 -36px;
+  padding: 0; border: 0; background: none; cursor: pointer;
+  transition: transform 0.18s ease;
+}
+.node:hover { transform: scale(1.08); }
+.node[data-selected] { transform: scale(1.45); z-index: 2; }   /* selecionado fica bem maior, como no NEO */
+
+.node[data-status="disconnected"] { --ring: #000; }
+
+.node__ring-wrap, .node__ring { position: absolute; inset: 0; }
+
+/* o SVG preto vira máscara: onde há traço, aparece a cor do --ring */
+.node__ring {
+  background: var(--ring);
+  -webkit-mask: url("./sphere_flame.svg") center / contain no-repeat;
+  mask: url("./sphere_flame.svg") center / contain no-repeat;
+}
+
+.node__icon {
+  position: absolute; inset: 11%; width: 78%; height: 78%;
+  border-radius: 50%; object-fit: cover; pointer-events: none;
+  background: radial-gradient(circle at 50% 35%, #0e9a9a, #054d4d);
+}
+.node[data-status="disconnected"] .node__icon {
+  background: #111; filter: grayscale(1) brightness(0.5);
+}
+
+/* o glow vai no wrapper: o filter do pai respeita o contorno mascarado do anel */
+.node[data-status="friend"] .node__ring-wrap,
+.node[data-status="me"] .node__ring-wrap {
+  filter: drop-shadow(0 0 5px rgba(39, 232, 232, 0.55));
+}
+.node[data-status^="pending"] .node__ring-wrap {
+  animation: node-glow 1.5s ease-in-out infinite;
+}
+@keyframes node-glow {
+  0%, 100% { filter: drop-shadow(0 0 0 rgba(39, 232, 232, 0)) drop-shadow(0 0 0 rgba(39, 232, 232, 0)); }
+  50%      { filter: drop-shadow(0 0 16px rgba(39, 232, 232, 1)) drop-shadow(0 0 5px rgba(39, 232, 232, 0.9)); }
+}
+
+/* seta de seleção */
+.node__arrow {
+  position: absolute; left: -62%; top: -62%; width: 60%; height: 60%;
+  fill: none; stroke: #ffb000; stroke-width: 4;
+  stroke-linecap: round; stroke-linejoin: round;
+  pointer-events: none;
+  filter: drop-shadow(0 0 3px #000);
+  animation: arrow-bob 0.8s ease-in-out infinite;
+}
+@keyframes arrow-bob {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(8%, 8%); }
+}
+
+/* ---------- painel de perfil ---------- */
+.profile {
+  position: absolute; top: 0; right: 0; bottom: 0; width: 32%; z-index: 1;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  padding: 0 clamp(20px, 2.6vw, 48px) clamp(90px, 12vh, 140px);
+  --portrait-shadow: #1b4242;   /* cor exata da sombra (27, 66, 66) */
+  /* fade branco: separa o painel do grafo e deixa o fundo "limpo" */
+  background: linear-gradient(to bottom, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, 0.12) 30%, rgba(255, 255, 255, 0.3) 100%);
+}
+.profile__art {
+  position: absolute; right: 0; bottom: 0; height: 92%; max-width: 100%;
+  object-fit: contain; object-position: right bottom; z-index: -1;
+  /* sombra sólida (sem blur), só para a direita: aumente o 34 para afastar mais */
+  filter: drop-shadow(calc(34 * var(--u)) 0 0 var(--portrait-shadow));
+}
+/* entrada do portrait: bounce vindo de fora da tela (direita); ajuste o tempo (0.5s) à vontade */
+.profile__art[data-enter] { animation: portrait-in 0.2s cubic-bezier(0.22, 0.9, 0.3, 1) both; }
+@keyframes portrait-in {
+  0%   { transform: translateX(120%); }
+  62%  { transform: translateX(-1%); }
+  82%  { transform: translateX(0%); }
+  100% { transform: translateX(0); }
+}
+
+/* silhueta preta por cima, visível só na metade de baixo: o portrait "afunda" no preto */
+.profile__art--shade {
+  filter: brightness(0);
+  /* preto total a partir das pernas (~72% da altura) */
+  -webkit-mask-image: linear-gradient(to bottom, transparent 22%, rgba(0, 0, 0, 0.65) 48%, #000 72%);
+  mask-image: linear-gradient(to bottom, transparent 22%, rgba(0, 0, 0, 0.65) 48%, #000 72%);
+  pointer-events: none;
+}
+/* outline preta em todo texto (mesma técnica dos nomes da DM) */
+.profile__name, .profile__bio, .profile__label, .profile__date,
+.addbar label, .addbar__error, .chat-footer button, .chat-subtab {
+  -webkit-text-stroke: 0.2em #000;
+  paint-order: stroke fill;
+}
+.profile__name { margin: 0; font: 700 clamp(24px, 2.6vw, 46px) "M PLUS Rounded 1c", sans-serif; }
+.profile__bio {
+  margin: 0.4em 0 1.6em; font-size: clamp(14px, 1.45vw, 26px);
+  font-style: italic; line-height: 1.45; text-shadow: 0 0 6px #000;
+}
+.profile__label { margin: 0; color: #ffa800; font-style: italic; font-weight: 700; font-size: clamp(15px, 1.5vw, 26px); }
+.profile__date { margin: 0.1em 0 0; font-size: clamp(16px, 1.7vw, 30px); }
+
+/* ---------- campo de Player ID ---------- */
+.addbar {
+  --field: calc(46 * var(--u));   /* altura do campo = lado do botão */
+  position: absolute; z-index: 3;
+  left: calc(36 * var(--u)); bottom: calc(76 * var(--u) + 26 * var(--u)); /* acima da faixa do rodapé */
+  transform: rotate(-3deg); transform-origin: left bottom;   /* inclinação "dinâmica" */
+}
+.addbar label {
+  display: block; margin-bottom: 0.35em;
+  font-size: calc(24 * var(--u)); text-shadow: 0 0 6px #000;
+}
+.addbar__row { display: flex; gap: calc(10 * var(--u)); }
+
+.addbar input {
+  box-sizing: border-box; width: calc(380 * var(--u)); height: var(--field);
+  padding: 0 0.6em; outline: none;
+  background: #000; color: #fff; border: 2px solid #fff;
+  font: 500 calc(26 * var(--u)) "M PLUS Rounded 1c", sans-serif;
+  transform: skewX(-14deg);   /* paralelogramo, texto inclinado junto */
+}
+.addbar input::placeholder { color: rgba(255, 255, 255, 0.45); }
+.addbar input:focus { border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+
+.addbar button {
+  flex: none; box-sizing: border-box;
+  width: var(--field); height: var(--field); padding: 0;
+  display: grid; place-items: center;
+  background: none; border: 0; cursor: pointer;   /* sem quadrado: só a seta */
+  transition: transform 0.15s ease;
+}
+.addbar button:hover { transform: translateX(calc(4 * var(--u))) scale(1.1); }
+.addbar .send-icon {
+  display: block; fill: #fff; overflow: visible;
+  /* contorno preto na seta branca */
+  filter: drop-shadow(calc(2 * var(--u)) 0 0 #000) drop-shadow(calc(-2 * var(--u)) 0 0 #000)
+          drop-shadow(0 calc(2 * var(--u)) 0 #000) drop-shadow(0 calc(-2 * var(--u)) 0 #000);
+  width: calc(var(--field) * 0.55); height: calc(var(--field) * 0.55); /* sem % para não depender do layout */
+}
+
+.addbar__error { margin: 0.4em 0 0; color: #ff7b88; font-size: calc(22 * var(--u)); }
+
+/* ---------- transição de abas: faixa preta diagonal ---------- */
+.wipe {
+  --s: 74vh;                      /* metade da inclinação: arestas a ~34° da horizontal */
+  --h: calc(85vw + var(--s));     /* meia-largura da faixa: larga o bastante pra cobrir a tela toda no meio */
+  position: absolute; inset: 0; z-index: 10;
+  background: #000; pointer-events: none;
+  animation: wipe-pass 300ms cubic-bezier(0.45, 0, 0.55, 1) both;
+}
+.wipe[data-dir="rtl"] { animation-direction: reverse; } /* mesma faixa, sentido contrário */
+
+@keyframes wipe-pass {
+  from {
+    clip-path: polygon(
+      calc(var(--h) * -2) 0,
+      0 0,
+      calc(var(--s) * -2) 100%,
+      calc(var(--h) * -2 - var(--s) * 2) 100%
+    );
+  }
+  to {
+    clip-path: polygon(
+      calc(100% + var(--s) * 2) 0,
+      calc(100% + var(--h) * 2 + var(--s) * 2) 0,
+      calc(100% + var(--h) * 2) 100%,
+      100% 100%
+    );
+  }
+}

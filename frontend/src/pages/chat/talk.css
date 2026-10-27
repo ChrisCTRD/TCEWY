@@ -1,0 +1,166 @@
+/* DM (cutscene 1:1). Usa --u do .shell: 1u = 1px em 1920x1080.
+   Valores aproximados do wireframe; ajuste pelas variáveis abaixo. */
+.dm {
+  --zoom: 0.8;                                  /* 1 = como estava; menor = mais "afastado" */
+  --u: calc(min(0.052083vw, 0.092593vh) * var(--zoom));
+  --portrait-h: 78%;
+  --portrait-w: 34%;
+  --portrait-edge: 8%;
+  background: #000;
+  overflow: hidden;
+}
+
+/* foto de Shibuya em cinza, como "moldura" (não precisa preencher a tela) */
+.dm__bg {
+  position: absolute; left: 50%; bottom: 0; transform: translateX(-50%);
+  width: 92%; height: 94%;
+  background: url("/background/shibuyascramble.webp") center / cover no-repeat;
+  filter: grayscale(1) contrast(1.05);
+}
+/* overlay (other002_XX.png), tela cheia */
+.dm__fx {
+  position: absolute; inset: 0; opacity: 0.32; pointer-events: none;
+  background: center / 100% 100% no-repeat;
+}
+
+/* ---------- nomes ---------- */
+.dm__name {
+  position: absolute; top: 9%; margin: 0; z-index: 3;
+  font: 800 calc(68 * var(--u)) "M PLUS Rounded 1c", sans-serif;
+  color: #fff; -webkit-text-stroke: 0.2em #000; paint-order: stroke fill;
+}
+.dm__name[data-side="them"] { left: 16%; }
+.dm__name[data-side="me"]   { right: 16%; }
+
+/* ---------- portraits ---------- */
+.portrait {
+  position: absolute; bottom: 0; z-index: 1;
+  height: var(--portrait-h); width: var(--portrait-w);
+  background: center bottom / contain no-repeat;
+  user-select: none; -webkit-user-drag: none;
+}
+.portrait[data-side="them"] { left: var(--portrait-edge); transform: scaleX(-1); } /* espelhado: o outro olha para o centro */
+.portrait[data-side="me"]   { right: var(--portrait-edge); }
+.portrait__shield { position: absolute; inset: 0; }
+
+/* ---------- balões ---------- */
+.dm__balloons { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+
+.balloon {
+  --text-w: calc(400 * var(--u));   /* largura máx. do texto: menor = quebra mais = balão mais redondo */
+  --pad-y: calc(56 * var(--u));     /* respiro vertical: maior = balão mais alto */
+  --pad-x: 0.5;                     /* respiro horizontal, em múltiplos de --cw */
+  --fps: 60;                                   /* fps do jogo */
+  --f: calc(1s / var(--fps));                  /* duração de 1 frame */
+  --from-x: calc(-520 * var(--u));             /* origem da animação = portrait (them = esquerda) */
+  --from-y: calc(160 * var(--u));
+  --drop: calc(14 * var(--u));                 /* quanto o balão desce (frames 6-10) */
+  --cw: calc(126 * var(--u));   /* largura de cada fatia */
+  --ch: calc(126 * var(--u));   /* altura de cada fatia */
+  --tail: calc(140 * var(--u));
+  position: absolute; left: 0; right: 0; margin-inline: auto;   /* centralizado */
+  color: #000; pointer-events: auto;
+  display: grid; width: fit-content;
+  min-width: calc(3 * var(--cw)); max-width: calc(900 * var(--u));
+  min-height: calc(2.6 * var(--ch));  /* texto curto não vira lente: mantém proporção arredondada */
+  top: var(--slot-new);
+  transition: top 0.4s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.3s ease;
+  animation: balloon-in calc(11 * var(--f)) linear both;   /* 11 frames */
+  grid-template-columns: var(--cw) minmax(0, 1fr) var(--cw);
+  grid-template-rows: var(--ch) auto var(--ch);
+}
+/* fila de balões: o novo entra embaixo, o anterior sobe, o mais antigo sai pela parte de cima */
+.dm { --slot-new: 44%; --slot-prev: 17%; --slot-out: -45%; }
+.balloon[data-slot="0"] { top: var(--slot-new); }
+.balloon[data-slot="1"] { top: var(--slot-prev); }
+.balloon[data-slot="2"] { top: var(--slot-out); pointer-events: none; }
+/* mais folga conforme o texto quebra em mais linhas (data-lines vem do Balloon.jsx) */
+.balloon[data-lines="3"] { --pad-y: calc(72 * var(--u));  --pad-x: 0.65; }
+.balloon[data-lines="4"] { --pad-y: calc(96 * var(--u));  --pad-x: 0.85; }
+.balloon[data-lines="5"] { --pad-y: calc(104 * var(--u)); --pad-x: 0.9; }
+.balloon__line { display: block; }
+
+/* aparecer: frames 0-6 portrait -> centro, 6-10 desce, frame 11 volta seco ao centro */
+.balloon[data-side="me"] { --from-x: calc(520 * var(--u)); }
+@keyframes balloon-in {
+  0%     { opacity: 0; transform: translate(var(--from-x), var(--from-y)) scale(0.5); }
+  54.5%  { opacity: 1; transform: translate(0, 0) scale(1); }                 /* frame 6 */
+  90.9%  { opacity: 1; transform: translate(0, var(--drop)) scale(1);         /* frame 10 */
+           animation-timing-function: steps(1, end); }
+  100%   { opacity: 1; transform: translate(0, 0) scale(1); }                 /* frame 11: seco */
+}
+
+/* as 9 fatias: cantos fixos, bordas e miolo esticam */
+.balloon__cell { background: center / 100% 100% no-repeat; }
+.balloon__cell--tl { grid-area: 1 / 1; background-image: url("/balloons/nballoontl.webp"); }
+.balloon__cell--tm { grid-area: 1 / 2; background-image: url("/balloons/nballoontm.webp"); }
+.balloon__cell--tr { grid-area: 1 / 3; background-image: url("/balloons/nballoontr.webp"); }
+.balloon__cell--ml { grid-area: 2 / 1; background-image: url("/balloons/nballoonml.webp"); }
+.balloon__cell--mm { grid-area: 2 / 2; background-image: url("/balloons/nballoonmm.webp"); }
+.balloon__cell--mr { grid-area: 2 / 3; background-image: url("/balloons/nballoonmr.webp"); }
+.balloon__cell--bl { grid-area: 3 / 1; background-image: url("/balloons/nballoonbl.webp"); }
+.balloon__cell--bm { grid-area: 3 / 2; background-image: url("/balloons/nballoonbm.webp"); }
+.balloon__cell--br { grid-area: 3 / 3; background-image: url("/balloons/nballoonbr.webp"); }
+
+/* o texto cobre o grid inteiro e é ELE que define o tamanho do balão */
+.balloon__text {
+  grid-area: 1 / 1 / 4 / 4; z-index: 1; margin: 0;
+  display: grid; align-content: center; justify-items: center; text-align: center;
+  justify-self: center; box-sizing: border-box;
+  max-width: calc(var(--text-w) + 2 * var(--cw) * var(--pad-x));
+  padding: var(--pad-y) calc(var(--cw) * var(--pad-x));
+  overflow-wrap: anywhere;
+  font: 700 calc(44 * var(--u)) / 1.35 "M PLUS Rounded 1c", sans-serif;
+}
+
+/* tail separado (não estica junto com o 9-slice); default = lado direito */
+.balloon__tail {
+  position: absolute; z-index: 2; display: block; pointer-events: none;
+  width: var(--tail); height: var(--tail);
+  bottom: calc(var(--tail) * -0.62); right: calc(var(--cw) * 0.3);
+}
+.balloon[data-side="them"] .balloon__tail { right: auto; left: calc(var(--cw) * 0.3); transform: scaleX(-1); }
+
+/* scribble: imagem única 117x117 com tail embutido (default = direito) */
+.balloon[data-balloon="scribble"] {
+  --size: calc(380 * var(--u));
+  display: grid; place-items: center; width: var(--size); height: var(--size);
+  min-width: 0; min-height: 0; grid-template: none;
+}
+.balloon__scribble {
+  position: absolute; inset: 0;
+  background: url("/balloons/scribbleballoon.png") center / 100% 100% no-repeat;
+  image-rendering: auto;
+}
+.balloon[data-side="them"][data-balloon="scribble"] .balloon__scribble { transform: scaleX(-1); }
+.balloon[data-balloon="scribble"] .balloon__text { grid-area: auto; padding: 0 calc(60 * var(--u)); }
+
+.balloon[data-editable] { cursor: pointer; }
+.balloon[data-sending] { opacity: 0.6; }
+.balloon[data-failed]  { filter: drop-shadow(0 0 calc(6 * var(--u)) #ff5566); }
+
+/* ---------- pins ---------- */
+.dm__pin {
+  position: absolute; bottom: calc(26 * var(--u)); z-index: 4;
+  width: calc(118 * var(--u)); height: calc(118 * var(--u));
+  padding: 0; border: 0; background: center / contain no-repeat;
+}
+.dm__pin[data-side="them"] { left: calc(30 * var(--u)); background-image: url("/opin.webp"); }
+.dm__pin[data-side="me"] {
+  right: calc(30 * var(--u)); cursor: pointer;
+  background-image: url("/playerpin.webp");
+  transition: transform 0.15s ease;
+}
+.dm__pin[data-side="me"]:hover { transform: scale(1.08); }
+
+/* ---------- input ---------- */
+.dm__input {
+  position: absolute; z-index: 4; left: 50%; bottom: calc(26 * var(--u)); transform: translateX(-50%);
+  box-sizing: border-box; width: calc(960 * var(--u)); height: calc(90 * var(--u)); padding: 0 0.6em;
+  background: rgba(0, 0, 0, 0.45); color: #fff; outline: none;
+  border: calc(3 * var(--u)) solid rgba(255, 255, 255, 0.85);
+  font: 700 calc(52 * var(--u)) "M PLUS Rounded 1c", sans-serif;
+}
+.dm__input::placeholder { color: rgba(255, 255, 255, 0.45); }
+.dm__input:focus { border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
+.dm__input:disabled { opacity: 0.5; }

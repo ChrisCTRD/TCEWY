@@ -7,7 +7,10 @@ const userSchema = new mongoose.Schema({
         required: true,
         unique: true,
         trim: true,
-        lowercase: true
+        lowercase: true,
+        minlength: 3,
+        maxlength: 20,
+        match: [/^[a-z0-9_]+$/, 'playerId may only contain letters, numbers and underscore']
     },
     displayName: {
         type: String,
@@ -28,6 +31,12 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['Player', 'Reaper', 'Composer'],
         default: 'Player'
+    },
+    bio: {
+        type: String,
+        default: '',
+        trim: true,
+        maxlength: 200
     },
     portrait: {
         type: String,
