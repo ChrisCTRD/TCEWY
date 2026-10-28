@@ -18,7 +18,7 @@
   background: #fff;
   transform: rotate(calc(var(--i) * 45deg)) translateY(-34px);
   animation: loader-fade 0.96s linear infinite;
-  animation-delay: calc(var(--i) * -0.12s); /* troque o sinal pra inverter o sentido */
+  animation-delay: calc((7 - var(--i)) * -0.12s);
 }
 @keyframes loader-fade {
   0%   { opacity: 1;   }

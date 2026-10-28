@@ -239,8 +239,8 @@
 /* o SVG preto vira máscara: onde há traço, aparece a cor do --ring */
 .node__ring {
   background: var(--ring);
-  -webkit-mask: url("./sphere_flame.svg") center / contain no-repeat;
-  mask: url("./sphere_flame.svg") center / contain no-repeat;
+  -webkit-mask: url("/sphere_flame.svg") center / contain no-repeat;
+  mask: url("/sphere_flame.svg") center / contain no-repeat;
 }
 
 .node__icon {

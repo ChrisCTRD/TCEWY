@@ -1,7 +1,7 @@
 import { io } from "socket.io-client";
 import { getToken } from "./api";
 
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const BASE = import.meta.env.VITE_API_URL || undefined;
 let socket = null;
 
 export function connectSocket() {

@@ -1,4 +1,4 @@
-const BASE = import.meta.env.VITE_API_URL ?? "http://localhost:3000";
+const BASE = "";
 const portraitCache = new Map();
 export const getToken = () => localStorage.getItem("token");
 
@@ -27,10 +27,12 @@ async function request(path, { method = "GET", body } = {}) {
   return data;
 }
 
-export function fetchPortrait(char, state = 0) {
-  const key = `${char}:${state}`;
+// Busca o portrait pelo personagem + NOME da expressão ("default", "fight", "smile"...).
+// Devolve uma URL de blob; o cache guarda a promise, então pedidos simultâneos viram uma requisição só.
+export function fetchPortrait(char, expression = "default") {
+  const key = `${char}:${expression}`;
   if (!portraitCache.has(key)) {
-    const p = fetch(`${BASE}/api/portraits?char=${encodeURIComponent(char)}&s=${state}`, {
+    const p = fetch(`${BASE}/api/portraits?char=${encodeURIComponent(char)}&e=${encodeURIComponent(expression)}`, {
       headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then(async (res) => {

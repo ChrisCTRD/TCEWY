@@ -4,7 +4,7 @@ import { usePortrait } from "./usePortrait";
 const fmt = (iso) => (iso ? new Date(iso).toLocaleDateString("pt-BR") : "???");
 
 export default function ProfilePanel({ person, isMe }) {
-  const art = usePortrait(person?.portrait);
+  const art = usePortrait(person?.portrait, "default");
 
   // quem está selecionado mudou -> o portrait entra de fora da tela com um bounce.
   // Montar o painel (abrir o Menu, Show Profile) não anima: só trocar de pessoa.

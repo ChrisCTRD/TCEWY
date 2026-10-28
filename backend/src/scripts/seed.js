@@ -16,9 +16,9 @@ const DAY = 24 * HOUR
 const TEST_USERS = [
   { playerId: 'test_chris', displayName: 'Chris (test)', bio: 'Main test account.', role: 'Player', portrait: 'neku_default' },
   { playerId: 'test_shiki', displayName: 'ShikiFan26 (test)', bio: "Hello! I'm the type of person that plays a lot of video games.", role: 'Player', portrait: 'shiki_default' },
-  { playerId: 'test_neku', displayName: 'Neku (test)', bio: 'Whatever.', role: 'Player' },
-  { playerId: 'test_joshua', displayName: 'Joshua (test)', bio: 'Composer on duty.', role: 'Composer' },
-  { playerId: 'test_beat', displayName: 'Beat (test)', bio: 'Skate or die.', role: 'Reaper' },
+  { playerId: 'test_neku', displayName: 'Neku (test)', bio: 'Whatever.', role: 'Player', portrait: 'neku_annoyed' },
+  { playerId: 'test_joshua', displayName: 'Joshua (test)', bio: 'Composer on duty.', role: 'Composer', portrait: 'joshua_default' },
+  { playerId: 'test_beat', displayName: 'Beat (test)', bio: 'Skate or die.', role: 'Reaper', portrait: 'beat_fight' },
   // Stranger: no relationship with anyone. Use it to test the first-time DM lock (it never answered anyone).
   { playerId: 'test_zed', displayName: 'Zed (test)', bio: 'Just passing by.', role: 'Player', portrait: 'neku_default' }
 ]

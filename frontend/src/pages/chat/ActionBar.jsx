@@ -50,7 +50,7 @@ export default function ActionBar({ keys, onAction, profile }) {
       {profile?.available && (
         <button onClick={profile.onToggle}>
           <span className="glyph">H</span>
-          {profile.hidden ? "Show Profile" : "Hide Profile"}
+          {profile.hidden ? "Display Profile" : "Hide Profile"}
         </button>
       )}
       {last && (
