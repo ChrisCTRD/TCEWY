@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState } from "react";
 import ChatNavbar from "./ChatNavbar";
 import SocialNetworkTab from "./SocialNetworkTab";
+import ArchivesTab from "./ArchivesTab";
 
 // ordem das "telas" da esquerda para a direita (define o sentido do efeito)
-const ORDER = ["threads", "thoughts/social", "thoughts/mental", "archive"];
+const ORDER = ["threads", "thoughts/social", "thoughts/mental", "archive/settings", "archive/guide"];
 const TABS = ["threads", "thoughts", "archive"]; // abas do topo, em ordem (para Q/W em loop)
+const DEFAULT_SUB = { thoughts: "social", archive: "settings" }; // abas com sub-abas e a sub padrão de cada uma
 const WIPE_MS = 300; // precisa bater com a duração no CSS
-const keyOf = (v) => (v.tab === "thoughts" ? `thoughts/${v.sub}` : v.tab);
+const keyOf = (v) => (DEFAULT_SUB[v.tab] ? `${v.tab}/${v.sub}` : v.tab);
 
 // lado do bounce da seta: THREADS = esquerda, ARCHIVE = direita, THOUGHTS = sentido de onde veio
 function bounceDir(from, to) {
@@ -20,6 +22,13 @@ export default function MenuOverlay({ open }) {
   const [wipe, setWipe] = useState(null); // { dir } enquanto o efeito roda
   const [bounce, setBounce] = useState(null); // { dir, n } da seta da navbar
   const timer = useRef(null);
+
+  // cada aba lembra a última sub-aba aberta
+  const subMemo = useRef({ ...DEFAULT_SUB });
+  useEffect(() => {
+    if (DEFAULT_SUB[view.tab]) subMemo.current[view.tab] = view.sub;
+  }, [view]);
+  const tabView = (tab) => ({ tab, sub: subMemo.current[tab] });
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
@@ -43,7 +52,7 @@ export default function MenuOverlay({ open }) {
   function cycle(delta) {
     const i = TABS.indexOf(view.tab);
     // direita (W / seta ») = faixa da esquerda para a direita; esquerda (Q / seta «) = ao contrário
-    go({ ...view, tab: TABS[(i + delta + TABS.length) % TABS.length] }, delta > 0 ? "ltr" : "rtl");
+    go(tabView(TABS[(i + delta + TABS.length) % TABS.length]), delta > 0 ? "ltr" : "rtl");
   }
 
   // atalhos: Q = esquerda, W = direita (o Espaço = BACK fica no ActionBar)
@@ -70,7 +79,8 @@ export default function MenuOverlay({ open }) {
       <div className="menu__body">
         {view.tab === "thoughts" && view.sub === "social" && <SocialNetworkTab />}
         {view.tab === "thoughts" && view.sub === "mental" && <p className="menu__soon">MENTAL NOTES</p>}
-        {view.tab !== "thoughts" && <p className="menu__soon">{view.tab.toUpperCase()}</p>}
+        {view.tab === "threads" && <p className="menu__soon">THREADS</p>}
+        {view.tab === "archive" && <ArchivesTab sub={view.sub} />}
       </div>
 
       <ChatNavbar
@@ -78,8 +88,8 @@ export default function MenuOverlay({ open }) {
         sub={view.sub}
         bounce={bounce}
         onCycle={cycle}
-        onTab={(tab) => go({ ...view, tab })}
-        onSub={(sub) => go({ tab: "thoughts", sub })}
+        onTab={(tab) => go(tabView(tab))}
+        onSub={(sub) => go({ tab: view.tab, sub })}
       />
 
       {wipe && <div className="wipe" data-dir={wipe.dir} onAnimationEnd={() => setWipe(null)} />}

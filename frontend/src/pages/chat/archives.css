@@ -1,0 +1,156 @@
+/* =====================  ARCHIVES  ===================== */
+.archives { position: absolute; inset: 0; }
+
+/* palco: acompanha o ângulo da janela cinza do Menu.
+   Para linhas retas como no jogo, use --arc-angle: 0deg e ajuste left/top/width/height. */
+.archives__stage {
+  --arc-angle: -4deg;
+  position: absolute; left: 42%; top: 57%; width: 62%; height: 50%;
+  transform: translate(-50%, -50%) rotate(var(--arc-angle));
+  display: grid; grid-template-columns: 34% 1fr; gap: calc(34 * var(--u));
+}
+
+/* ---------- lista da esquerda (estilo Display/Controls do NEO) ---------- */
+.arc-list { display: flex; flex-direction: column; gap: calc(16 * var(--u)); align-content: start; }
+
+.arc-row {
+  position: relative; box-sizing: border-box; width: 100%; height: calc(66 * var(--u));
+  display: flex; align-items: center; justify-content: flex-start;
+  padding: 0 calc(26 * var(--u));
+  background: #0c0c0c; color: #fff;
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  font: 700 calc(30 * var(--u)) "M PLUS Rounded 1c", sans-serif;
+  text-align: left; cursor: pointer;
+  transition: border-color 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* selecionado: contorno branco + moldura ciano com cantos, como no print */
+.arc-row[data-active="true"] {
+  border-color: #fff;
+  box-shadow: 0 0 calc(14 * var(--u)) rgba(39, 232, 232, 0.35);
+}
+.arc-row[data-active="true"]::before {
+  --c: var(--cyan); --t: calc(3 * var(--u)); --l: calc(16 * var(--u));
+  content: ""; position: absolute; inset: calc(-7 * var(--u)); pointer-events: none;
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--t) var(--l) no-repeat;
+}
+
+/* ---------- container da direita (rola) ---------- */
+.arc-pane {
+  box-sizing: border-box; overflow-y: auto;
+  padding: calc(34 * var(--u)) calc(40 * var(--u));
+  background: rgba(8, 8, 8, 0.92);
+  border: 2px solid rgba(255, 255, 255, 0.5);
+  scrollbar-width: thin; scrollbar-color: #fff rgba(255, 255, 255, 0.12);
+}
+.arc-pane::-webkit-scrollbar { width: calc(8 * var(--u)); }
+.arc-pane::-webkit-scrollbar-track { background: rgba(255, 255, 255, 0.12); }
+.arc-pane::-webkit-scrollbar-thumb { background: #fff; }
+
+.arc-pane__title { margin: 0 0 0.5em; font: 800 calc(38 * var(--u)) "M PLUS Rounded 1c", sans-serif; }
+.arc-pane__desc  { margin: 0; font: 500 calc(26 * var(--u)) / 1.55 "M PLUS Rounded 1c", sans-serif; color: #e2e2e2; }
+
+
+/* =====================  CONFIRMAÇÃO DE LOGOUT  ===================== */
+.lc {
+  --lc-tilt: -1.5deg;
+  position: absolute; inset: 0; z-index: 20;
+  display: grid; place-items: center;
+}
+
+/* fundo: preto e branco + blur leve. A animação de opacity fica no próprio .lc__dim
+   (opacity no pai quebraria o backdrop-filter durante o fade). */
+.lc__dim {
+  position: absolute; inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  -webkit-backdrop-filter: grayscale(1) blur(calc(3 * var(--u)));
+  backdrop-filter: grayscale(1) blur(calc(3 * var(--u)));
+  animation: lc-dim-in 180ms ease both;
+}
+
+.lc__panel {
+  position: relative; width: calc(940 * var(--u)); height: calc(200 * var(--u));
+  transform: rotate(var(--lc-tilt));
+}
+
+/* pincel: revelado da esquerda para a direita; o clip-path tem folga negativa
+   para não cortar as bordas rasgadas do filtro */
+.lc__brush {
+  position: absolute; inset: 0;
+  animation: lc-wipe 260ms cubic-bezier(0.3, 0.6, 0.2, 1) both;
+}
+.lc__brush::before, .lc__brush::after { content: ""; position: absolute; }
+.lc__brush::before { inset: -2% -1.5%; background: #000; filter: url(#lc-brush-white); } /* para tirar o branco: display: none */
+.lc__brush::after  { inset: 0; background: #000; filter: url(#lc-brush-black); }
+
+/* texto: entra em fade logo depois do pincel */
+.lc__body {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: calc(10 * var(--u));
+  animation: lc-text-in 180ms ease 140ms both;
+}
+.lc__title { margin: 0; font: 700 calc(48 * var(--u)) "M PLUS Rounded 1c", sans-serif; color: #fff; }
+.lc__red   { color: #ff2d3d; }
+.lc__sub   { margin: 0; font: 700 calc(24 * var(--u)) "M PLUS Rounded 1c", sans-serif; color: var(--cyan); }
+
+/* botões: ficam na borda de baixo do pincel, metade para fora */
+.lc__opts {
+  position: absolute; left: 50%; bottom: calc(-46 * var(--u));
+  transform: translateX(-50%);
+  display: flex; gap: calc(40 * var(--u));
+}
+.lc__opt {
+  position: relative; isolation: isolate;
+  width: calc(340 * var(--u)); height: calc(86 * var(--u)); /* proporção do inkbutton.webp (360x91) */
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font: italic 800 calc(32 * var(--u)) "M PLUS Rounded 1c", sans-serif;
+  color: #3a3a3a;
+  transition: filter 0.12s ease, color 0.12s ease;
+}
+.lc__opt:nth-child(2) { translate: 0 calc(10 * var(--u)); }
+/* o pincel é o alpha do inkbutton.webp; a cor vem do background */
+.lc__opt::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; background: #8c8c8c;
+  -webkit-mask: url("/inkbutton.webp") center / 100% 100% no-repeat;
+  mask: url("/inkbutton.webp") center / 100% 100% no-repeat;
+}
+.lc__opt:nth-child(2)::before { transform: scaleX(-1); } /* espelha o traço para os dois não ficarem iguais */
+.lc__opt[data-focus="true"] {
+  color: #111;
+  filter: drop-shadow(0 0 calc(2 * var(--u)) #fff) drop-shadow(0 0 calc(12 * var(--u)) rgba(39, 232, 232, 0.55));
+}
+.lc__opt[data-focus="true"]::before { background: #bdf7f7; }
+
+/* confirmar: fade preto em tudo (por cima de menu, navbar e da própria confirmação) */
+.lc__black {
+  position: absolute; inset: 0; background: #000;
+  animation: lc-black-in 450ms ease both;
+}
+
+/* cancelar: só a confirmação some */
+.lc[data-phase="cancel"] .lc__dim,
+.lc[data-phase="cancel"] .lc__panel { animation: lc-out 160ms ease forwards; }
+
+@keyframes lc-dim-in   { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lc-text-in  { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lc-out      { from { opacity: 1; } to { opacity: 0; } }
+@keyframes lc-black-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lc-wipe {
+  from { clip-path: inset(-30% 100% -30% -6%); }
+  to   { clip-path: inset(-30% -6% -30% -6%); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .lc__dim, .lc__panel, .lc__brush, .lc__body, .lc__black {
+    animation-duration: 0.01ms !important; animation-delay: 0s !important;
+  }
+}

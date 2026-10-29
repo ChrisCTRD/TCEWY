@@ -1,8 +1,15 @@
 const TABS = ["threads", "thoughts", "archive"];
-const SUBS = [
-  ["social", "SOCIAL NETWORK"],
-  ["mental", "MENTAL NOTES"],
-];
+// sub-abas de cada aba principal (threads não tem)
+const SUBS = {
+  thoughts: [
+    ["social", "SOCIAL NETWORK"],
+    ["mental", "MENTAL NOTES"],
+  ],
+  archive: [
+    ["settings", "SETTINGS"],
+    ["guide", "GUIDE"],
+  ],
+};
 
 // seta dupla « (aponta para a esquerda; a da direita é a mesma girada em CSS)
 function DoubleChevron() {
@@ -42,9 +49,9 @@ export default function ChatNavbar({ tab, onTab, sub, onSub, onCycle, bounce }) 
         {arrow("right")}
       </div>
 
-      {tab === "thoughts" && (
+      {SUBS[tab] && (
         <div className="chat-nav__subtabs">
-          {SUBS.map(([key, label]) => (
+          {SUBS[tab].map(([key, label]) => (
             <button key={key} className="chat-subtab" data-active={sub === key} onClick={() => onSub(key)}>
               {label}
             </button>

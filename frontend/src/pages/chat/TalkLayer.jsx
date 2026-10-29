@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useChatStore } from "./chatStore";
 import { canSend } from "./chatRules";
@@ -6,9 +6,13 @@ import { lastBy, withPose } from "./balloonPresets";
 import Portrait from "./Portrait";
 import Balloon from "./Balloon";
 import "./talk.css";
+import { fxUrl } from "./assets";
 
 const EMPTY = [];
-const FX_DIR = "/overlay"; // pasta de other002_01.png ... other002_10.png dentro de public/
+
+// conversas cujo slide de entrada já rodou. Vive no módulo: sobrevive a sair/voltar pro chat,
+// e só zera quando a página é recarregada.
+const introPlayed = new Set();
 
 export default function TalkLayer({ conversationId, blurred }) {
   const navigate = useNavigate();
@@ -19,18 +23,23 @@ export default function TalkLayer({ conversationId, blurred }) {
   const loadMessages = useChatStore((s) => s.loadMessages);
   const sendMessage = useChatStore((s) => s.sendMessage);
   const [draft, setDraft] = useState("");
-
-  // overlay fixo por conversa (01–10), derivado do id para não trocar a cada render
-  const fx = useMemo(() => {
-    let h = 0;
-    for (const ch of String(conversationId ?? "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
-    return String((h % 10) + 1).padStart(2, "0");
-  }, [conversationId]);
+  const fxSrc = useMemo(() => fxUrl(conversationId), [conversationId]);
 
   const hasContact = !!contact;
   useEffect(() => {
     if (conversationId && hasContact && !loaded) loadMessages(conversationId);
   }, [conversationId, hasContact, loaded, loadMessages]);
+
+  // animação de entrada (portrait + nome): só na primeira vez que esta conversa abre.
+  // `intro` fica fixo enquanto a tela está montada.
+  const anim = useRef({ id: null, intro: false });
+  if (anim.current.id !== conversationId) {
+    anim.current = { id: conversationId, intro: !introPlayed.has(conversationId) };
+  }
+  const intro = anim.current.intro;
+  useEffect(() => {
+    if (conversationId && hasContact && loaded) introPlayed.add(conversationId);
+  }, [conversationId, hasContact, loaded]);
 
   if (!contact) return <section className="talk" data-blurred={blurred} />;
 
@@ -46,9 +55,9 @@ export default function TalkLayer({ conversationId, blurred }) {
   const recent = messages.slice(-3);
 
   return (
-    <section className="talk dm" data-blurred={blurred} aria-hidden={blurred}>
+    <section className="talk dm" data-blurred={blurred} data-intro={intro || undefined} aria-hidden={blurred}>
       <div className="dm__bg" aria-hidden="true" />
-      <div className="dm__fx" aria-hidden="true" style={{ backgroundImage: `url("${FX_DIR}/other002_${fx}.png")` }} />
+      <div className="dm__fx" aria-hidden="true" style={{ backgroundImage: `url("${fxSrc}")` }} />
 
       <h2 className="dm__name" data-side="them">{contact.displayName ?? contact.playerId}</h2>
       <h2 className="dm__name" data-side="me">{me.displayName ?? me.playerId}</h2>

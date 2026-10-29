@@ -1,5 +1,8 @@
 const BASE = "";
 const portraitCache = new Map();
+const portraitUrls = new Map();
+export const peekPortrait = (char, expression = "default") =>
+  portraitUrls.get(`${char}:${expression}`) ?? null;
 export const getToken = () => localStorage.getItem("token");
 
 export class ApiError extends Error {
@@ -36,9 +39,11 @@ export function fetchPortrait(char, expression = "default") {
       headers: { Authorization: `Bearer ${getToken()}` },
     })
       .then(async (res) => {
-        if (!res.ok) throw new ApiError("PORTRAIT_FAILED", "Portrait unavailable", res.status);
-        return URL.createObjectURL(await res.blob());
-      })
+      if (!res.ok) throw new ApiError("PORTRAIT_FAILED", "Portrait unavailable", res.status);
+      const url = URL.createObjectURL(await res.blob());
+      portraitUrls.set(key, url);
+      return url;
+    })
       .catch((err) => {
         portraitCache.delete(key); // permite tentar de novo depois
         throw err;

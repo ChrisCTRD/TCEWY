@@ -2,6 +2,16 @@
 export const iconSrc = (p) =>
   !p?.icon || p.icon === "icon_default" ? "/empty.png" : `/icons/${p.icon}.png`;
 
+// Overlay fixo por conversa (other002_01 ... other002_10 em public/overlay), derivado do id
+// para não trocar a cada render. Fica aqui para o TalkLayer e o pré-carregamento usarem a MESMA conta.
+export const FX_DIR = "/overlay";
+export function fxId(conversationId) {
+  let h = 0;
+  for (const ch of String(conversationId ?? "")) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  return String((h % 10) + 1).padStart(2, "0");
+}
+export const fxUrl = (conversationId) => `${FX_DIR}/other002_${fxId(conversationId)}.png`;
+
 // Expressões do sistema (as demais, extras, são pedidas pelo nome direto)
 export const PORTRAIT_EXPRESSION = {
   DEFAULT: "default",

@@ -164,3 +164,33 @@
 .dm__input::placeholder { color: rgba(255, 255, 255, 0.45); }
 .dm__input:focus { border-color: var(--cyan); box-shadow: 0 0 10px var(--cyan); }
 .dm__input:disabled { opacity: 0.5; }
+
+/* ---------- entrada do portrait + nome: fade rápido + slide de fora da tela ---------- */
+/* só na primeira abertura da conversa (.dm[data-intro], vem do TalkLayer.jsx). O balão tem animação própria (balloon-in). */
+.dm {
+  --slide-x: 80vw;                           /* distância percorrida (sai de fora da tela) */
+  --enter: 0.6s;                             /* duração do slide */
+  --ease-io: cubic-bezier(0.45, 0, 0.55, 1); /* ease in-out */
+  --fade: 0.2s;                              /* fade rápido */
+}
+
+/* THEM vem da esquerda, ME vem da direita */
+.portrait[data-side="them"], .dm__name[data-side="them"] { --slide-from: calc(-1 * var(--slide-x)); }
+.portrait[data-side="me"],   .dm__name[data-side="me"]   { --slide-from: var(--slide-x); }
+
+.dm[data-intro] .portrait,
+.dm[data-intro] .dm__name {
+  animation:
+    slide-in var(--enter) var(--ease-io) backwards,
+    fade-in var(--fade) ease-out backwards;
+}
+
+/* usa a propriedade `translate` (e não `transform`) para não sobrescrever o scaleX(-1) do portrait THEM */
+@keyframes slide-in {
+  from { translate: var(--slide-from) 0; }
+  to   { translate: 0 0; }
+}
+@keyframes fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
