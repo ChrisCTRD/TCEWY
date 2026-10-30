@@ -1,6 +1,11 @@
+// Ícones dos personagens (chibis). Os originais 2048x2048 ficam em public/icons; `npm run icons` gera
+// as versões leves que a UI realmente carrega.
+export const iconSm = (id) => `/icons/sm/${id}.webp`;
+export const iconLg = (id) => `/icons/lg/${id}.webp`;
+
 // ícone do nó: sem ícone configurado, usa o empty.png
 export const iconSrc = (p) =>
-  !p?.icon || p.icon === "icon_default" ? "/empty.png" : `/icons/${p.icon}.png`;
+  !p?.icon || p.icon === "icon_default" ? "/empty.png" : iconSm(p.icon);
 
 // Overlay fixo por conversa (other002_01 ... other002_10 em public/overlay), derivado do id
 // para não trocar a cada render. Fica aqui para o TalkLayer e o pré-carregamento usarem a MESMA conta.

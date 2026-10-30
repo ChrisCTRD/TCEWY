@@ -116,6 +116,17 @@ export const useChatStore = create((set, get) => {
       })
     );
 
+    // alguém (ou outra aba/dispositivo seu) trocou de personagem
+    s.on("profile:updated", ({ playerId, portrait, icon }) =>
+      set((st) => {
+        if (st.me?.playerId === playerId) return { me: { ...st.me, portrait, icon } };
+        const entry = Object.values(st.contacts).find((c) => c.playerId === playerId);
+        return entry
+          ? { contacts: { ...st.contacts, [entry.conversationId]: { ...entry, portrait, icon } } }
+          : st;
+      })
+    );
+
     s.on("dm:unlocked", ({ conversationId, fromPlayerId }) => {
       patchContact(conversationId, { unlocked: true });
       addNotice({ type: "dm_unlocked", conversationId, playerId: fromPlayerId });
@@ -167,6 +178,20 @@ export const useChatStore = create((set, get) => {
       if (c && c.unreadCount > 0) {
         patchContact(id, { unreadCount: 0 });
         api.markRead(id).catch(() => {});
+      }
+    },
+
+    // ---------- perfil ----------
+    // Troca de personagem (THREADS): atualiza na hora e desfaz se o backend recusar
+    async setCharacter({ portrait, icon }) {
+      const prev = get().me;
+      set((s) => ({ me: { ...s.me, portrait, icon } }));
+      try {
+        const { user } = await api.setCharacter({ portrait, icon });
+        set((s) => ({ me: { ...s.me, ...user } }));
+      } catch (e) {
+        set((s) => ({ me: { ...s.me, portrait: prev.portrait, icon: prev.icon } }));
+        throw e;
       }
     },
 

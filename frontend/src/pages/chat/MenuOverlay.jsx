@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import ChatNavbar from "./ChatNavbar";
 import SocialNetworkTab from "./SocialNetworkTab";
 import ArchivesTab from "./ArchivesTab";
+import ThreadsTab from "./ThreadsTab";
 
 // ordem das "telas" da esquerda para a direita (define o sentido do efeito)
 const ORDER = ["threads", "thoughts/social", "thoughts/mental", "archive/settings", "archive/guide"];
@@ -10,7 +11,8 @@ const DEFAULT_SUB = { thoughts: "social", archive: "settings" }; // abas com sub
 const WIPE_MS = 300; // precisa bater com a duração no CSS
 const keyOf = (v) => (DEFAULT_SUB[v.tab] ? `${v.tab}/${v.sub}` : v.tab);
 
-// lado do bounce da seta: THREADS = esquerda, ARCHIVE = direita, THOUGHTS = sentido de onde veio
+// lado do bounce da seta ao clicar direto numa aba: THREADS = esquerda, ARCHIVE = direita, THOUGHTS = sentido de onde veio
+// (Q/W/setas não usam isto: o bounce segue a tecla, ver go)
 function bounceDir(from, to) {
   if (to === "threads") return "left";
   if (to === "archive") return "right";
@@ -36,7 +38,10 @@ export default function MenuOverlay({ open }) {
   function go(next, forceDir) {
     if (wipe || keyOf(next) === keyOf(view)) return;
     if (next.tab !== view.tab) {
-      setBounce((b) => ({ dir: bounceDir(view.tab, next.tab), n: (b?.n ?? 0) + 1 }));
+      // Q/W/setas: a seta quica para o lado da tecla (W/» = direita, Q/« = esquerda), inclusive no loop,
+      // sempre no mesmo sentido do efeito. Clique direto na aba: lado da aba escolhida.
+      const side = forceDir ? (forceDir === "ltr" ? "right" : "left") : bounceDir(view.tab, next.tab);
+      setBounce((b) => ({ dir: side, n: (b?.n ?? 0) + 1 }));
     }
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       setView(next);
@@ -79,7 +84,7 @@ export default function MenuOverlay({ open }) {
       <div className="menu__body">
         {view.tab === "thoughts" && view.sub === "social" && <SocialNetworkTab />}
         {view.tab === "thoughts" && view.sub === "mental" && <p className="menu__soon">MENTAL NOTES</p>}
-        {view.tab === "threads" && <p className="menu__soon">THREADS</p>}
+        {view.tab === "threads" && <ThreadsTab />}
         {view.tab === "archive" && <ArchivesTab sub={view.sub} />}
       </div>
 

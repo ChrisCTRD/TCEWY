@@ -1,10 +1,13 @@
 // Pré-carregamento dos assets do chat. Roda enquanto o Loader está na tela.
 import { useChatStore } from "./chatStore";
 import { fetchPortrait } from "./api";
-import { PORTRAIT_EXPRESSION, fxUrl, iconSrc, parsePortrait } from "./assets";
+import { PORTRAIT_EXPRESSION, fxUrl, iconLg, iconSm, iconSrc, parsePortrait } from "./assets";
+import { CHARACTERS } from "./characters";
 import { BALLOON_PRESETS } from "./balloonPresets";
+import { canOpenDM } from "./chatRules";
 
 const GATE_TIMEOUT_MS = 4000; // se algo travar, o chat abre assim mesmo
+const MESSAGES_ON_SCREEN = 2; // só 2 balões aparecem na tela por vez: é tudo que precisa ser buscado
 
 // arquivos que o código referencia direto (as imagens do CSS são descobertas sozinhas, ver collectCssUrls)
 const STATIC = [
@@ -16,6 +19,16 @@ const STATIC = [
 ];
 
 const withTimeout = (p, ms) => Promise.race([p, new Promise((resolve) => setTimeout(resolve, ms))]);
+
+// roda fn em todos os itens, no máximo n por vez (não bombardeia o backend)
+async function pool(items, n, fn) {
+  const queue = [...items];
+  await Promise.all(
+    Array.from({ length: n }, async () => {
+      while (queue.length) await Promise.resolve(fn(queue.shift())).catch(() => {});
+    })
+  );
+}
 
 // ---------- imagens ----------
 // Guarda o <img> já carregado e decodificado: evita baixar duas vezes e mantém a imagem pronta em memória.
@@ -107,6 +120,11 @@ export async function preloadGate({ me, contacts, focusId }) {
   if (focusId) urls.add(fxUrl(focusId)); // overlay da conversa aberta
   for (const u of urls) jobs.push(loadImage(u));
   jobs.push(...people.flatMap(portraitJobs));
+  // mensagens da conversa aberta: sem isto os balões só entrariam depois de o Loader sair
+  const focus = focusId && contacts?.[focusId];
+  if (focus && canOpenDM(focus)) {
+    jobs.push(useChatStore.getState().loadMessages(focusId, false, MESSAGES_ON_SCREEN));
+  }
   await withTimeout(Promise.allSettled(jobs), GATE_TIMEOUT_MS);
 }
 
@@ -116,6 +134,33 @@ export function preloadExtras({ me, contacts }) {
   const chars = new Set([me, ...list].map((p) => parsePortrait(p?.portrait)?.char).filter(Boolean));
   for (const c of chars) for (const e of Object.values(PORTRAIT_EXPRESSION)) portrait(c, e);
   for (const c of list) loadImage(fxUrl(c.conversationId));
+
+
+  // THREADS: só os ícones pequenos de todos; o resto carrega sob demanda (preloadCharacter)
+  for (const ch of CHARACTERS) loadImage(iconSm(ch.icon));
+
+  
+
+  // últimas mensagens das demais conversas (3 por vez); as que já estão em memória ficam como estão
+  const { messages, loadMessages } = useChatStore.getState();
+  const todo = list
+    .filter((c) => canOpenDM(c) && messages[c.conversationId] === undefined)
+    .map((c) => c.conversationId);
+  pool(todo, 3, (id) => loadMessages(id, false, MESSAGES_ON_SCREEN));
+}
+
+// THREADS: carrega sob demanda tudo de um personagem (ícone pequeno e grande + todas as poses do portrait).
+// Aceita o item de CHARACTERS ou só o id do personagem. loadImage e fetchPortrait têm cache,
+// então chamar de novo (ex.: ao passar o mouse no mesmo personagem) não baixa nada duas vezes.
+export function preloadCharacter(ch) {
+  const entry = typeof ch === "string" ? CHARACTERS.find((c) => c.id === ch) : ch;
+  const char = entry?.id; // ajuste se o campo tiver outro nome em characters.js
+  if (!entry || !char) return Promise.resolve();
+  return Promise.allSettled([
+    loadImage(iconSm(entry.icon)),
+    loadImage(iconLg(entry.icon)),
+    ...Object.values(PORTRAIT_EXPRESSION).map((e) => portrait(char, e)),
+  ]);
 }
 
 // Contatos que aparecem durante a sessão (pedido de amizade etc.): carrega ícone e portrait na hora.
@@ -124,8 +169,9 @@ export function watchNewContacts() {
   const fresh = (st) => {
     const out = [];
     for (const c of Object.values(st.contacts)) {
-      if (!seen.has(c.playerId)) {
-        seen.add(c.playerId);
+      const key = `${c.playerId}|${c.portrait}|${c.icon}`; // trocar de personagem também conta como novidade
+      if (!seen.has(key)) {
+        seen.add(key);
         out.push(c);
       }
     }

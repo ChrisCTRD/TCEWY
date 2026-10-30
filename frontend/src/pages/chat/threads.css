@@ -1,0 +1,164 @@
+/* =====================  THREADS (seleção de personagem)  =====================
+   Medidas em "px de 1080p" (calc(N * var(--u))), tiradas do print do THREADS do NEO:
+   grade em x=420, slots 160 + gap 20, painel de detalhe à direita (575x766). */
+.threads { position: absolute; inset: 0; }
+
+/* ---------- portrait equipado (esquerda) ----------
+   Espelho do ProfilePanel, sem a sombra colorida nem o fade branco. */
+.thr__art {
+  position: absolute; left: 0; bottom: 0; height: 92%; max-width: 30%;
+  object-fit: contain; object-position: right bottom; /* era "left bottom" */
+  scale: -1 1;
+  pointer-events: none; user-select: none; z-index: 0;
+}
+/* entra de fora da tela pela ESQUERDA (o do Social Network entra pela direita) */
+.thr__art[data-enter] { animation: thr-portrait-in 0.2s cubic-bezier(0.22, 0.9, 0.3, 1) both; }
+@keyframes thr-portrait-in {
+  0%   { transform: translateX(120%); }   /* era -120% */
+  62%  { transform: translateX(-1%); }    /* era 1% */
+  82%  { transform: translateX(0%); }
+  100% { transform: translateX(0); }
+}
+/* silhueta preta por cima, só na metade de baixo (para tirar o fade: apague o 2º <img> no JSX) */
+.thr__art--shade {
+  filter: brightness(1);
+}
+
+/* ---------- coluna central: nome + grade ---------- */
+.thr-main {
+  position: absolute; left: calc(420 * var(--u)); top: calc(200 * var(--u));
+  width: calc(880 * var(--u)); z-index: 1;
+}
+
+/* nome do personagem equipado (o "RINDO" do print): contorno branco, miolo cinza */
+.thr__name {
+  margin: 0 0 calc(22 * var(--u)); min-height: calc(86 * var(--u));
+  font: 400 calc(86 * var(--u)) / 1 "Vandalism", sans-serif; letter-spacing: 0.02em;
+  color: rgba(130, 130, 130, 0.6);
+  -webkit-text-stroke: 0.045em rgba(255, 255, 255, 0.85);
+  paint-order: stroke fill;
+  pointer-events: none; user-select: none;
+}
+
+.thr-list {
+  display: grid; grid-template-columns: repeat(5, calc(160 * var(--u)));
+  gap: calc(20 * var(--u)); padding-top: calc(14 * var(--u)); /* respiro para a seta e os cantos */
+}
+
+/* ---------- slot ---------- */
+.thr-slot {
+  position: relative; box-sizing: border-box; width: 100%; aspect-ratio: 1;
+  padding: 0; cursor: pointer; outline: none;
+  border: calc(2 * var(--u)) solid rgba(255, 255, 255, 0.5);
+  background: linear-gradient(to bottom, #d6d6d6 0%, #8b8b8b 55%, #4b4b4b 100%);
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+.thr-slot__icon {
+  position: absolute; inset: 6%; width: 88%; height: 88%;
+  object-fit: contain; pointer-events: none; user-select: none;
+}
+
+/* selecionado (cursor): fundo ciano + cantos pulsando ("active") */
+.thr-slot[data-active] {
+  z-index: 1; border-color: #fff;
+  background: linear-gradient(to bottom, #86f6f6 0%, #1fcfcf 55%, #0b8c8c 100%);
+  box-shadow: 0 0 calc(18 * var(--u)) rgba(39, 232, 232, 0.55);
+}
+.thr-slot[data-active]::before {
+  --c: #e9ffff; --t: calc(4 * var(--u)); --l: calc(24 * var(--u));
+  content: ""; position: absolute; inset: calc(-9 * var(--u)); pointer-events: none;
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--t) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--l) var(--t) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--t) var(--l) no-repeat;
+  filter: drop-shadow(0 0 calc(6 * var(--u)) var(--cyan));
+  animation: thr-corners 0.9s ease-in-out infinite;
+}
+@keyframes thr-corners {
+  0%, 100% { inset: calc(-9 * var(--u)); }
+  50%      { inset: calc(-16 * var(--u)); }
+}
+
+/* equipado: selo no canto de cima à direita */
+.thr-slot__eq {
+  position: absolute; z-index: 2; right: calc(-10 * var(--u)); top: calc(-10 * var(--u));
+  width: calc(38 * var(--u)); height: calc(38 * var(--u)); border-radius: 50%;
+  display: grid; place-items: center;
+  background: #fff; color: #000; border: calc(2 * var(--u)) solid #000;
+  font: 800 calc(22 * var(--u)) / 1 "M PLUS Rounded 1c", sans-serif;
+}
+
+/* seta laranja de seleção (mesma do grafo), no canto de cima à esquerda */
+.thr-arrow {
+  position: absolute; z-index: 3; left: -30%; top: -30%; width: 34%; height: 34%;
+  fill: none; stroke: #ffb000; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round;
+  pointer-events: none; filter: drop-shadow(0 0 3px #000);
+  animation: thr-bob 0.8s ease-in-out infinite;
+}
+@keyframes thr-bob {
+  0%, 100% { transform: translate(0, 0); }
+  50%      { transform: translate(8%, 8%); }
+}
+
+.thr__error {
+  margin: calc(18 * var(--u)) 0 0; color: #ff7b88; font: 700 calc(22 * var(--u)) "M PLUS Rounded 1c", sans-serif;
+  -webkit-text-stroke: 0.2em #000; paint-order: stroke fill;
+}
+
+/* ---------- painel de detalhe (direita) ---------- */
+.thr-detail {
+  position: absolute; z-index: 1; box-sizing: border-box;
+  right: calc(15 * var(--u)); top: calc(217 * var(--u));
+  width: calc(575 * var(--u)); height: calc(766 * var(--u));
+  display: flex; flex-direction: column;
+  background: rgba(8, 8, 8, 0.92); border: calc(2 * var(--u)) solid rgba(255, 255, 255, 0.5);
+}
+.thr-detail__head {
+  flex: none; display: flex; align-items: stretch; gap: calc(18 * var(--u));
+  height: calc(54 * var(--u)); background: rgba(255, 255, 255, 0.07);
+}
+.thr-detail__no {
+  display: grid; place-items: center; padding: 0 calc(30 * var(--u)) 0 calc(20 * var(--u));
+  background: #5c5c5c; clip-path: polygon(0 0, 100% 0, calc(100% - 16 * var(--u)) 100%, 0 100%);
+  font: italic 700 calc(26 * var(--u)) "M PLUS Rounded 1c", sans-serif;
+}
+.thr-detail__name {
+  align-self: center; margin: 0;
+  font: 700 calc(32 * var(--u)) "M PLUS Rounded 1c", sans-serif;
+}
+
+.thr-detail__body {
+  flex: 1; min-height: 0; overflow-y: auto;
+  display: flex; flex-direction: column; align-items: center;
+  padding: calc(22 * var(--u)) calc(38 * var(--u)) 0;
+  animation: thr-swap 0.18s ease both;
+  scrollbar-width: thin; scrollbar-color: #fff rgba(255, 255, 255, 0.12);
+}
+@keyframes thr-swap {
+  from { opacity: 0; transform: translateY(calc(8 * var(--u))); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.thr-detail__art {
+  flex: none; width: calc(360 * var(--u)); height: calc(360 * var(--u)); object-fit: contain;
+  filter: drop-shadow(0 calc(10 * var(--u)) calc(14 * var(--u)) rgba(0, 0, 0, 0.6));
+  user-select: none;
+}
+.thr-detail__desc {
+  align-self: stretch; margin: calc(20 * var(--u)) 0 0;
+  font: 500 calc(26 * var(--u)) / 1.55 "M PLUS Rounded 1c", sans-serif; color: #e2e2e2;
+}
+
+.thr-detail__foot { flex: none; padding: calc(16 * var(--u)) calc(38 * var(--u)) calc(22 * var(--u)); }
+.thr-detail__label { margin: 0; color: #ffa800; font-style: italic; font-weight: 700; font-size: calc(26 * var(--u)); }
+.thr-detail__value { margin: 0.1em 0 0; font-weight: 800; font-size: calc(34 * var(--u)); }
+
+@media (prefers-reduced-motion: reduce) {
+  .thr__art[data-enter], .thr-slot[data-active]::before, .thr-arrow, .thr-detail__body {
+    animation: none !important;
+  }
+}

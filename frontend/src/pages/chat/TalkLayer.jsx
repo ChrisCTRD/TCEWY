@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { matchPath, useNavigate } from "react-router-dom";
 import { useChatStore } from "./chatStore";
 import { canSend } from "./chatRules";
 import { lastBy, withPose } from "./balloonPresets";
@@ -9,10 +9,14 @@ import "./talk.css";
 import { fxUrl } from "./assets";
 
 const EMPTY = [];
+const NO_KEYS = new Set();
+const keyOf = (m) => m.clientId ?? m.id; // mesma chave usada no <Balloon key>
 
-// conversas cujo slide de entrada já rodou. Vive no módulo: sobrevive a sair/voltar pro chat,
-// e só zera quando a página é recarregada.
-const introPlayed = new Set();
+// Entrada completa (THEM + balões esperando os portraits): one-time, só no refresh direto em /chat/:id.
+// Vindo do /chat ou de outra conversa, só o ME anima e os balões que já existiam aparecem parados.
+// Refresh em /chat (Menu) não conta: BOOT_ID fica null.
+const BOOT_ID = matchPath("/chat/:id", window.location.pathname)?.params.id ?? null;
+let bootIntroPending = BOOT_ID !== null; // vira false assim que a entrada roda
 
 export default function TalkLayer({ conversationId, blurred }) {
   const navigate = useNavigate();
@@ -23,47 +27,77 @@ export default function TalkLayer({ conversationId, blurred }) {
   const loadMessages = useChatStore((s) => s.loadMessages);
   const sendMessage = useChatStore((s) => s.sendMessage);
   const [draft, setDraft] = useState("");
+  const sectionRef = useRef(null);
   const fxSrc = useMemo(() => fxUrl(conversationId), [conversationId]);
 
   const hasContact = !!contact;
   useEffect(() => {
-    if (conversationId && hasContact && !loaded) loadMessages(conversationId);
+    if (conversationId && hasContact && !loaded) loadMessages(conversationId, false, 2);
   }, [conversationId, hasContact, loaded, loadMessages]);
 
-  // animação de entrada (portrait + nome): só na primeira vez que esta conversa abre.
-  // `intro` fica fixo enquanto a tela está montada.
-  const anim = useRef({ id: null, intro: false });
+  // Decidido uma vez por conversa, no momento em que ela vira a ativa (fica fixo enquanto a tela está montada):
+  // - intro: THEM anima e os balões esperam os portraits. Só no refresh em /chat/:id. O ME anima a cada troca de conversa.
+  // - still: balões que já estavam carregados ao abrir a conversa; entram parados (sem balloon-in).
+  //   Mensagens que chegam depois (enviadas/recebidas) e conversas ainda não carregadas animam normalmente.
+  const anim = useRef({ id: null, intro: false, still: NO_KEYS });
   if (anim.current.id !== conversationId) {
-    anim.current = { id: conversationId, intro: !introPlayed.has(conversationId) };
+    const intro = bootIntroPending && conversationId === BOOT_ID;
+    anim.current = {
+      id: conversationId,
+      intro,
+      still: loaded && !intro ? new Set(messages.slice(-3).map(keyOf)) : NO_KEYS,
+    };
   }
-  const intro = anim.current.intro;
+  const { intro, still } = anim.current;
+
+  // no refresh, os balões esperam o slide dos portraits + um respiro (tempos lidos do CSS: --enter e --balloon-gap)
+  const [introDone, setIntroDone] = useState(false);
   useEffect(() => {
-    if (conversationId && hasContact && loaded) introPlayed.add(conversationId);
-  }, [conversationId, hasContact, loaded]);
+    const el = sectionRef.current;
+    if (!intro || !hasContact || !el) return;
+    bootIntroPending = false; // gasta o one-time: voltar a esta conversa depois não repete
+    const cs = getComputedStyle(el);
+    const secs = (name, fallback) => parseFloat(cs.getPropertyValue(name)) || fallback;
+    const t = setTimeout(() => setIntroDone(true), (secs("--enter", 1.4) + secs("--balloon-gap", 0.4)) * 1000);
+    return () => clearTimeout(t);
+  }, [intro, hasContact]);
+  const showBalloons = !intro || introDone;
 
   if (!contact) return <section className="talk" data-blurred={blurred} />;
 
   const writable = canSend(contact);
 
+  // durante a intro não há balão (nem a pose que ele forçaria, ex.: scribble -> annoyed).
+  // Se as mensagens ainda estiverem carregando quando a intro acabar, o balão entra assim que chegarem.
+  const visible = showBalloons ? messages : EMPTY;
+
   // última mensagem de cada lado: é o que aparece na tela (a DM é "em tempo real")
-  const lastThem = lastBy(messages, contact.playerId);
-  const lastMe = lastBy(messages, me.playerId);
+  const lastThem = lastBy(visible, contact.playerId);
+  const lastMe = lastBy(visible, me.playerId);
 
   // pose efetiva: o balão (ex.: scribble) pode forçar; senão vale a selecionada
   const themPose = withPose(contact, lastThem);
   const mePose = withPose(me, lastMe);
-  const recent = messages.slice(-3);
+  const recent = visible.slice(-3);
 
   return (
-    <section className="talk dm" data-blurred={blurred} data-intro={intro || undefined} aria-hidden={blurred}>
+    <section
+      ref={sectionRef}
+      className="talk dm"
+      data-blurred={blurred}
+      data-intro={intro || undefined}
+      aria-hidden={blurred}
+    >
       <div className="dm__bg" aria-hidden="true" />
       <div className="dm__fx" aria-hidden="true" style={{ backgroundImage: `url("${fxSrc}")` }} />
 
-      <h2 className="dm__name" data-side="them">{contact.displayName ?? contact.playerId}</h2>
-      <h2 className="dm__name" data-side="me">{me.displayName ?? me.playerId}</h2>
+      {/* key = id da conversa: cada troca de conversa recria estes elementos e a animação de entrada roda de novo.
+          Abrir/fechar o Menu não muda o id, então não reanima. */}
+      <h2 key={`them-name-${conversationId}`} className="dm__name" data-side="them">{contact.displayName ?? contact.playerId}</h2>
+      <h2 key={`me-name-${conversationId}`} className="dm__name" data-side="me">{me.displayName ?? me.playerId}</h2>
 
-      <Portrait person={themPose} side="them" />
-      <Portrait person={mePose} side="me" />
+      <Portrait key={`them-${conversationId}`} person={themPose} side="them" />
+      <Portrait key={`me-${conversationId}`} person={mePose} side="me" />
 
       {/* fila: novo = slot 0 (embaixo), anterior = 1 (sobe), mais antigo = 2 (sai offscreen) */}
       <div className="dm__balloons">
@@ -72,10 +106,11 @@ export default function TalkLayer({ conversationId, blurred }) {
           const side = m.senderPlayerId === me.playerId ? "me" : "them";
           return (
             <Balloon
-              key={m.clientId ?? m.id}
+              key={keyOf(m)}
               message={m}
               side={side}
               slot={slot}
+              still={still.has(keyOf(m))}
               onEdit={undefined /* TODO: edição por clique (precisa de message:edit no backend) */}
             />
           );

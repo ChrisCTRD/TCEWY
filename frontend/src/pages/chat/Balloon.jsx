@@ -4,7 +4,8 @@ const CELLS = ["tl", "tm", "tr", "ml", "mm", "mr", "bl", "bm", "br"]; // top/mid
 
 // Mesmo componente para a DM e, depois, para o Chat Log.
 // Normal: 9-slice (nballoonXY.webp) + tail separado. Scribble: imagem única com tail embutido.
-export default function Balloon({ message, side, slot = 0, onEdit }) {
+// still: o balão já estava na tela quando a conversa abriu -> aparece parado, sem o balloon-in.
+export default function Balloon({ message, side, slot = 0, still = false, onEdit }) {
   const scribble = message.balloon === "scribble";
   const canEdit = side === "me" && !message.deleted && !message.sending && !!onEdit;
 
@@ -31,6 +32,7 @@ export default function Balloon({ message, side, slot = 0, onEdit }) {
       data-slot={slot}
       data-lines={Math.min(lines, 5)}
       data-balloon={message.balloon}
+      data-still={still || undefined}
       data-deleted={message.deleted || undefined}
       data-failed={message.failed || undefined}
       data-sending={message.sending || undefined}

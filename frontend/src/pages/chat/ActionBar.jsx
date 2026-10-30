@@ -8,6 +8,7 @@ const META = {
   decline: { label: "Decline",  hotkey: "d", glyph: "D", danger: true },
   remove:  { label: "Remove",   hotkey: "r", glyph: "R", danger: true },
   close:   { label: "Close DM", hotkey: "c", glyph: "C", danger: true },
+  equip:   { label: "Change Character", hotkey: "enter", glyph: "↵" },
 };
 
 // profile = { available, hidden, onToggle } — botão HIDE/SHOW PROFILE (tecla H)
@@ -33,7 +34,13 @@ export default function ActionBar({ keys, onAction, profile }) {
         return;
       }
       const k = keys.find((key) => META[key].hotkey === e.key.toLowerCase());
-      if (k) onAction(k);
+      if (k) {
+        if (e.key === "Enter") {
+          e.preventDefault(); // não "clica" no botão que estiver focado
+          document.activeElement?.blur?.();
+        }
+        onAction(k);
+      }
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);

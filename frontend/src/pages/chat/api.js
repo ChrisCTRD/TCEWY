@@ -55,6 +55,7 @@ export function fetchPortrait(char, expression = "default") {
 
 export const api = {
   me: () => request("/me"),
+  setCharacter: ({ portrait, icon }) => request("/me", { method: "PATCH", body: { portrait, icon } }),
   friends: () => request("/friends"),
   conversations: () => request("/conversations"),
   requests: () => request("/friends/requests"),

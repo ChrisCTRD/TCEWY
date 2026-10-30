@@ -89,6 +89,8 @@
            animation-timing-function: steps(1, end); }
   100%   { opacity: 1; transform: translate(0, 0) scale(1); }                 /* frame 11: seco */
 }
+/* balão que já estava na tela quando a conversa abriu (data-still vem do TalkLayer/Balloon): aparece parado */
+.balloon[data-still] { animation: none; }
 
 /* as 9 fatias: cantos fixos, bordas e miolo esticam */
 .balloon__cell { background: center / 100% 100% no-repeat; }
@@ -166,11 +168,15 @@
 .dm__input:disabled { opacity: 0.5; }
 
 /* ---------- entrada do portrait + nome: fade rápido + slide de fora da tela ---------- */
-/* só na primeira abertura da conversa (.dm[data-intro], vem do TalkLayer.jsx). O balão tem animação própria (balloon-in). */
+/* THEM: só no refresh direto em /chat/:id, uma única vez (.dm[data-intro], vem do TalkLayer.jsx).
+   ME: toda vez que o id da conversa muda (o TalkLayer recria o elemento com key = id, e a animação roda ao montar).
+   O balão tem animação própria (balloon-in); no refresh ele só entra depois do slide + --balloon-gap (timer no TalkLayer).
+   --enter e --balloon-gap são lidos pelo TalkLayer: mantenha em segundos (s). */
 .dm {
   --slide-x: 80vw;                           /* distância percorrida (sai de fora da tela) */
-  --enter: 0.6s;                             /* duração do slide */
-  --ease-io: cubic-bezier(0.45, 0, 0.55, 1); /* ease in-out */
+  --enter: 1.4s;                             /* duração do slide */
+  --balloon-gap: 0.4s;                       /* respiro entre o fim do slide e o primeiro balão (só no refresh) */
+  --ease-io: cubic-bezier(0.45, 0, 0.12, 1); /* ease in-out */
   --fade: 0.2s;                              /* fade rápido */
 }
 
@@ -179,7 +185,9 @@
 .portrait[data-side="me"],   .dm__name[data-side="me"]   { --slide-from: var(--slide-x); }
 
 .dm[data-intro] .portrait,
-.dm[data-intro] .dm__name {
+.dm[data-intro] .dm__name,
+.portrait[data-side="me"],
+.dm__name[data-side="me"] {
   animation:
     slide-in var(--enter) var(--ease-io) backwards,
     fade-in var(--fade) ease-out backwards;
@@ -193,4 +201,15 @@
 @keyframes fade-in {
   from { opacity: 0; }
   to   { opacity: 1; }
+}
+
+/* sem movimento: só o fade */
+@media (prefers-reduced-motion: reduce) {
+  .dm { --enter: var(--fade); }   /* sem slide: o balão só espera o fade (o TalkLayer lê esta variável) */
+  .dm[data-intro] .portrait,
+  .dm[data-intro] .dm__name,
+  .portrait[data-side="me"],
+  .dm__name[data-side="me"] {
+    animation: fade-in var(--fade) ease-out backwards;
+  }
 }

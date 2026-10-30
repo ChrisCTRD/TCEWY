@@ -247,9 +247,10 @@
   position: absolute; inset: 11%; width: 78%; height: 78%;
   border-radius: 50%; object-fit: cover; pointer-events: none;
   background: radial-gradient(circle at 50% 35%, #0e9a9a, #054d4d);
+
 }
 .node[data-status="disconnected"] .node__icon {
-  background: #111; filter: grayscale(1) brightness(0.5);
+  background: url("/icons/emptybg.webp") center / cover no-repeat;
 }
 
 /* o glow vai no wrapper: o filter do pai respeita o contorno mascarado do anel */
