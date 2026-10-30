@@ -167,6 +167,20 @@ const buildConversationItems = async (entries) => {
     .map((row) => row.item)
 }
 
+// Everyone who can see this user in their lists (friend, pending_in, pending_out, disconnected).
+// Unions Friendship and Conversation so a contact is never missed.
+const listCounterpartIds = async (userId) => {
+  const [friendships, conversations] = await Promise.all([
+    Friendship.find({ $or: [{ requester: userId }, { recipient: userId }] }).select('requester recipient'),
+    Conversation.find({ participants: userId }).select('participants')
+  ])
+  const ids = new Set()
+  for (const f of friendships) ids.add(String(f.requester)).add(String(f.recipient))
+  for (const c of conversations) c.participants.forEach((p) => ids.add(String(p)))
+  ids.delete(String(userId))
+  return [...ids]
+}
+
 module.exports = {
   computeStatus,
   isUnlocked,
@@ -176,5 +190,6 @@ module.exports = {
   requireReadable,
   listVisibleEntries,
   ensureConversation,
-  buildConversationItems
+  buildConversationItems,
+  listCounterpartIds
 }

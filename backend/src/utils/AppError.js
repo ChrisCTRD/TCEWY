@@ -19,6 +19,8 @@ const errors = {
   validation: (message = 'Invalid data') => new AppError(400, 'VALIDATION_ERROR', message),
   rateLimited: () => new AppError(429, 'RATE_LIMITED', 'Too many requests, slow down'),
   connectionLost: () => new AppError(409, 'CONNECTION_LOST', 'You are no longer connected to this player'),
+  invalidPortrait: () => new AppError(400, 'INVALID_PORTRAIT', 'Invalid portrait'),
+  invalidIcon: () => new AppError(400, 'INVALID_ICON', 'Invalid icon'),
   unauthorized: (message = 'Unauthorized') => new AppError(401, 'UNAUTHORIZED', message)
 }
 

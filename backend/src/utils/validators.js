@@ -1,4 +1,6 @@
 const { errors } = require('./AppError')
+const { STATES } = require('./portraitId')
+
 
 const PLAYER_ID_REGEX = /^[a-z0-9_]{3,20}$/
 const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/
@@ -10,6 +12,11 @@ const SENDABLE_BALLOONS = BALLOONS.filter((b) => b !== 'scribble')
 const MESSAGE_MAX = 1000
 const BIO_MAX = 200
 const RAW_TEXT_MAX = 5000 // hard cap before sanitizing (keeps the regex work bounded)
+// Characters that exist as portrait/icon assets. Joshua is mapped but not mounted in the front yet.
+// To add a new character, just add it here.
+const CHARACTERS = ['neku', 'shiki', 'joshua']
+const EXPRESSIONS = Object.keys(STATES)
+const ICONS = ['icon_default', ...CHARACTERS.map((c) => `${c}_icon`)]
 
 const normalizePlayerId = (value) => (typeof value === 'string' ? value.trim().toLowerCase() : '')
 
@@ -59,15 +66,34 @@ const parseClientId = (value) => {
   return value
 }
 
+// "<char>_<expression>", e.g. "neku_default".
+const parsePortrait = (value) => {
+  const match = typeof value === 'string' ? /^([a-z0-9]+)_([a-z0-9]+)$/.exec(value) : null
+  if (!match || !CHARACTERS.includes(match[1]) || !EXPRESSIONS.includes(match[2])) {
+    throw errors.invalidPortrait()
+  }
+  return value
+}
+
+// Icon name without extension ("neku_icon") or "icon_default".
+const parseIcon = (value) => {
+  if (typeof value !== 'string' || !ICONS.includes(value)) throw errors.invalidIcon()
+  return value
+}
+
 module.exports = {
   PLAYER_ID_REGEX,
   BALLOONS,
   BIO_MAX,
+  CHARACTERS,
+  ICONS,
   normalizePlayerId,
   parseLookupPlayerId,
   isObjectId,
   cleanText,
   sanitizeMessageText,
   parseBalloon,
-  parseClientId
+  parseClientId,
+  parsePortrait,
+  parseIcon
 }

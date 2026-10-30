@@ -2,7 +2,7 @@ const express = require('express')
 const authMiddleware = require('../middleware/auth')
 const currentUser = require('../middleware/currentUser')
 const rateLimit = require('../middleware/rateLimit')
-const { getMe, updateBio } = require('../controllers/meController')
+const { getMe, updateProfile } = require('../controllers/meController')
 const {
   getFriends,
   getRequests,
@@ -25,7 +25,7 @@ const router = express.Router()
 router.use(authMiddleware, currentUser)
 
 router.get('/me', getMe)
-router.patch('/me/bio', updateBio)
+router.patch('/me', updateProfile)
 
 router.get('/friends', getFriends)
 router.get('/friends/requests', getRequests)
