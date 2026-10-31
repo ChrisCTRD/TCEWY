@@ -29,6 +29,18 @@ export const CHARACTERS = [
     description:
       "Shiki as she is seen in the UG. Outgoing, fashion-obsessed and fiercely loyal, with a bond to her best friend Eri that follows her everywhere.",
   },
+
+  {
+    id: "joshua",
+    number: 3,
+    name: 'Yoshiya "Joshua" Kiryu',
+    short: "JOSHUA",
+    icon: "joshua_icon",
+    expressions: ["default", "happy", "annoyed", "fight", "thoughtful", "smile", "thinking", "shocked"],
+    previewExpression: "happy",
+    description:
+      "A calm, sharp-tongued Player with a knack for staying one step ahead. He never seems worried, and he rarely tells you everything he knows.",
+  },
 ];
 
 export const characterOf = (id) => CHARACTERS.find((c) => c.id === id) ?? null;
