@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import './Login.css'
+import { BASE } from './chat/api'
 
 export default function Register() {
   const [form, setForm] = useState({
@@ -24,7 +25,7 @@ export default function Register() {
     setLoading(true)
 
     try {
-      const res = await fetch('/api/auth/register', {
+      const res = await fetch(`${BASE}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(form)

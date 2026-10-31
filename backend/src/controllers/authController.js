@@ -53,7 +53,11 @@ const login = async (req, res) => {
     const { password } = req.body
     const playerId = normalizePlayerId(req.body.playerId)
 
-    const user = await User.findOne({ playerId })
+    const user = await User.findOne(
+      typeof email === 'string' && email.trim()
+        ? { email: email.trim().toLowerCase() }
+        : { playerId }
+    )
 
     if (!user || typeof password !== 'string') {
       return res.status(401).json({ message: 'Invalid Player ID or password' })

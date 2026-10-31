@@ -14,6 +14,9 @@ const { notFoundHandler, errorHandler } = require('./src/middleware/errorHandler
 const app = express()
 const PORT = process.env.PORT || 3000
 
+
+app.set('trust proxy', 1)
+
 // Front origin(s). Comma-separated list is accepted: CLIENT_ORIGIN=http://localhost:5173,https://meusite.com
 const CLIENT_ORIGINS = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
   .split(',')
@@ -23,6 +26,9 @@ const CLIENT_ORIGINS = (process.env.CLIENT_ORIGIN || 'http://localhost:5173')
 app.use(express.json())
 app.use(cors({ origin: CLIENT_ORIGINS, credentials: true }))
 
+app.get('/health', (req, res) => res.sendStatus(200)) // antes das rotas
+
+app.use('/api/auth', authRoutes)
 app.use('/api/auth', authRoutes)
 app.use('/api/portraits', portraitRoutes)
 app.use('/api', apiRoutes)

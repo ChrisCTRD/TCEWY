@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useChatStore } from './chat/chatStore'
 import './Login.css'
+import { BASE } from './chat/api'
 
 export default function Login() {
   const [usePlayerId, setUsePlayerId] = useState(false)
@@ -9,6 +10,7 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  
   const navigate = useNavigate()
 
   const handleToggle = () => {
@@ -27,7 +29,7 @@ export default function Login() {
         ? { playerId: identifier, password }
         : { email: identifier, password }
 
-      const res = await fetch('/api/auth/login', {
+      const res = await fetch(`${BASE}/api/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body)

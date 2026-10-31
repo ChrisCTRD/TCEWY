@@ -1,9 +1,10 @@
-const BASE = "";
 const portraitCache = new Map();
 const portraitUrls = new Map();
 export const peekPortrait = (char, expression = "default") =>
   portraitUrls.get(`${char}:${expression}`) ?? null;
 export const getToken = () => localStorage.getItem("token");
+export const BASE = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+
 
 export class ApiError extends Error {
   constructor(code, message, status) {
