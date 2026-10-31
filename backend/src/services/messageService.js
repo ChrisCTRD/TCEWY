@@ -29,6 +29,8 @@ const sendMessage = async ({ userId, playerId, conversationId, text, balloon, ex
 
   const balloonValue = parseBalloon(balloon)
   const expressionValue = parseExpression(expression)
+  const cleanText = sanitizeMessageText(text, balloonValue)
+  const clientIdValue = parseClientId(clientId)
 
 
   const access = requireReadable(await getAccess(userId, conversationId))
