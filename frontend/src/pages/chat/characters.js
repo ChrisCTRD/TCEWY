@@ -13,7 +13,7 @@ export const CHARACTERS = [
     name: "Neku Sakuraba",
     short: "NEKU",
     icon: "neku_icon",
-    expressions: ["default", "happy", "annoyed", "fight", "thoughtful"],
+    expressions: ["default", "happy", "annoyed", "fight", "thoughtful", "smile", "thinking", "shocked"],
     previewExpression: "happy",
     description:
       "A headphone-wearing teenager who keeps the whole world at arm's length. Shibuya has other plans for him.",
@@ -24,7 +24,7 @@ export const CHARACTERS = [
     name: "Shiki Misaki",
     short: "SHIKI",
     icon: "shiki_icon",
-    expressions: ["default", "happy", "annoyed", "fight", "thoughtful"],
+    expressions: ["default", "happy", "annoyed", "fight", "thoughtful", "smile", "thinking", "shocked"],
     previewExpression: "happy",
     description:
       "Shiki as she is seen in the UG. Outgoing, fashion-obsessed and fiercely loyal, with a bond to her best friend Eri that follows her everywhere.",
