@@ -62,6 +62,7 @@ export const api = {
   sendRequest: (playerId) => request("/friends/requests", { method: "POST", body: { playerId } }),
   accept: (id) => request(`/friends/requests/${id}/accept`, { method: "POST" }),
   decline: (id) => request(`/friends/requests/${id}/decline`, { method: "POST" }),
+  cancelRequest: (id) => request(`/friends/requests/${id}/cancel`, { method: "POST" }), // quem ENVIOU cancela o pedido
   removeFriend: (playerId) => request(`/friends/${encodeURIComponent(playerId)}`, { method: "DELETE" }),
   openDM: (playerId) => request("/conversations/open", { method: "POST", body: { playerId } }),
   closeDM: (id) => request(`/conversations/${id}/close`, { method: "POST" }),

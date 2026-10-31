@@ -11,13 +11,19 @@ import { useSocialUi } from "./socialUiStore";
 
 let profileHiddenMemo = false; // lembra o Hide Profile enquanto a página não recarrega
 
-function actionsFor(c) {
+// Slots das ações (J/K/L), repassados ao ActionBar — é ele quem desenha os botões e trata as teclas.
+// O mesmo "papel" cai na mesma tecla em qualquer estado:
+//   J (ou Enter) = ação principal: Open DM / Accept
+//   K            = ação negativa:  Remove / Decline / Cancel Request / Close DM
+//   L            = Open DM, só em pending_in (onde o J é o Accept)
+//   M            = Hide/Display Profile (tratado no ActionBar)
+function slotsFor(c) {
   switch (c.status) {
-    case "friend":       return ["open", "remove"];
-    case "pending_in":   return ["open", "accept", "decline"];
-    case "pending_out":  return c.unlocked ? ["open"] : [];
-    case "disconnected": return ["open", "close"];
-    default:             return [];
+    case "friend":       return { J: "open", K: "remove" };
+    case "pending_in":   return { J: "accept", K: "decline", L: "open" };
+    case "pending_out":  return { J: c.unlocked ? "open" : null, K: "cancel" };
+    case "disconnected": return { J: "open", K: "close" };
+    default:             return {};
   }
 }
 
@@ -53,6 +59,7 @@ export default function SocialNetworkTab() {
       if (key === "accept") await st.accept(current.conversationId);
       if (key === "decline") { await st.decline(current.conversationId); setSelected(null); }
       if (key === "remove") await st.removeFriend(current.conversationId);
+      if (key === "cancel") { await st.cancelRequest(current.conversationId); setSelected(null); }
       if (key === "close") { await st.closeDM(current.conversationId); setSelected(null); }
     } catch (e) {
       setError(errorText(e.code));
@@ -95,7 +102,7 @@ export default function SocialNetworkTab() {
       </form>
 
       <ActionBar
-        keys={current ? actionsFor(current) : []}
+        slots={current ? slotsFor(current) : {}}
         onAction={run}
         profile={{ available: !!person, hidden: profileHidden, onToggle: toggleProfile }}
       />

@@ -6,12 +6,12 @@ import { usePortrait } from "./usePortrait";
 import { iconLg, iconSm, parsePortrait } from "./assets";
 import { CHARACTERS, characterOf, portraitValue } from "./characters";
 import { preloadCharacter } from "./preload";
+import { useKeys } from "./useKeys";
 import "./threads.css";
 
 const COLS = 5; // colunas da grade (bate com o CSS); ↑/↓ andam uma linha
 const EQUIP = ["equip"];
 const NO_KEYS = [];
-const STEP = { ArrowLeft: -1, ArrowRight: 1, ArrowUp: -COLS, ArrowDown: COLS };
 
 const toEmpty = (e) => {
   if (!e.currentTarget.src.endsWith("/empty.png")) e.currentTarget.src = "/empty.png";
@@ -32,7 +32,16 @@ function EquippedPortrait({ charId, expression }) {
   const value = charId ? `${charId}_default` : null;
   const preview = usePortrait(value, expression);
   const base = usePortrait(value, "default");
-  const art = preview ?? base;
+  // não mostra o default enquanto a pose escolhida ainda carrega (evita o "default antes do happy");
+  // só cai no default se a pose não chegar (pose inexistente) depois de um respiro
+  const [fallback, setFallback] = useState(false);
+  useEffect(() => {
+    setFallback(false);
+    if (preview) return;
+    const t = setTimeout(() => setFallback(true), 700);
+    return () => clearTimeout(t);
+  }, [preview, value, expression]);
+  const art = preview ?? (fallback ? base : null);
 
   const prev = useRef(charId);
   const [enter, setEnter] = useState(0);
@@ -88,23 +97,21 @@ export default function ThreadsTab() {
   // ActionBar: "Change Character" (Enter) só existe quando o cursor está em outro personagem
   const run = useCallback((key) => { if (key === "equip") equip(sel); }, [equip, sel]);
 
-  // setas movem o cursor (só com o Menu aberto e fora de campos de texto)
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (e) => {
-      if (e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
-      const step = STEP[e.key];
-      if (!step) return;
-      if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
-      e.preventDefault();
-      setIndex((i) => {
-        const n = i + step;
-        return n >= 0 && n < CHARACTERS.length ? n : i;
-      });
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [menuOpen]);
+  // WASD/setas movem o cursor (só com o Menu aberto)
+  const move = (d) =>
+    setIndex((i) => {
+      const n = i + d;
+      return n >= 0 && n < CHARACTERS.length ? n : i;
+    });
+  useKeys(
+    {
+      "KeyA,ArrowLeft": () => move(-1),
+      "KeyD,ArrowRight": () => move(1),
+      "KeyW,ArrowUp": () => move(-COLS),
+      "KeyS,ArrowDown": () => move(COLS),
+    },
+    menuOpen
+  );
 
   return (
     <div className="threads">

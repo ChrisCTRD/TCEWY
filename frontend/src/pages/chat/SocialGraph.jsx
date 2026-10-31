@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { iconSrc } from "./assets";
 import { useSocialUi } from "./socialUiStore";
 import { useChatStore } from "./chatStore";
+import { useKeys } from "./useKeys";
 
 const SELECTED_ZOOM = 1.3;  // zoom ao selecionar alguém; use null para manter o zoom atual
 const MIN_ZOOM = 0.45;
@@ -56,10 +57,6 @@ function Node({ id, x, y, status, icon, label, selected, onSelect }) {
     </button>
   );
 }
-
-const ARROWS = {
-  ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0],
-};
 
 // vizinho mais "natural" na direção da seta: dentro de ~60° e perto do eixo
 function pickNeighbor(points, from, [ux, uy]) {
@@ -149,29 +146,26 @@ export default function SocialGraph({ contacts, me, selectedId, onSelect, panelO
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [panelOpen]);
 
-  // setas do teclado: movem a seleção entre os nós (só com o Menu aberto e fora de campos de texto)
-  const nav = useRef(null);
-  nav.current = { nodes, selectedId, onSelect };
-  useEffect(() => {
-    if (!menuOpen) return;
-    const onKey = (e) => {
-      const dir = ARROWS[e.key];
-      if (!dir || e.ctrlKey || e.metaKey || e.altKey || e.shiftKey) return;
-      if (e.target.closest?.("input, textarea, select, [contenteditable]")) return;
-      e.preventDefault();
-      const { nodes, selectedId, onSelect } = nav.current;
-      const points = [
-        { id: "me", x: 0, y: 0 },
-        ...nodes.map(({ c, x, y }) => ({ id: c.conversationId, x, y })),
-      ];
-      const from = points.find((p) => p.id === selectedId);
-      if (!from) return onSelect("me"); // sem seleção: começa por você
-      const next = pickNeighbor(points, from, dir);
-      if (next) onSelect(next.id);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [menuOpen]);
+  // WASD/setas movem a seleção entre os nós (só com o Menu aberto)
+  function goTo(dir) {
+    const points = [
+      { id: "me", x: 0, y: 0 },
+      ...nodes.map(({ c, x, y }) => ({ id: c.conversationId, x, y })),
+    ];
+    const from = points.find((p) => p.id === selectedId);
+    if (!from) return onSelect("me"); // sem seleção: começa por você
+    const next = pickNeighbor(points, from, dir);
+    if (next) onSelect(next.id);
+  }
+  useKeys(
+    {
+      "KeyW,ArrowUp": () => goTo([0, -1]),
+      "KeyS,ArrowDown": () => goTo([0, 1]),
+      "KeyA,ArrowLeft": () => goTo([-1, 0]),
+      "KeyD,ArrowRight": () => goTo([1, 0]),
+    },
+    menuOpen
+  );
 
     const latest = useRef(null);
     latest.current = { ...view, selectedId };

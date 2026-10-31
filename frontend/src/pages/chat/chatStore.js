@@ -14,6 +14,7 @@ const initial = {
   notices: [],             // avisos para o Mental Notes
   openConversationId: null, // conversa em foco (Menu fechado)
   lastConversationId: null, // fundo desfocado do Menu
+  compose: { balloon: "round", expression: "default" }, // balão/pose da PRÓXIMA mensagem (TalkMenu)
 };
 
 let initPromise = null;
@@ -28,7 +29,8 @@ const upsert = (list, m) => {
   const i = list.findIndex((x) => x.id === m.id || (m.clientId && x.clientId === m.clientId));
   if (i === -1) return [...list, m];
   const next = [...list];
-  next[i] = m;
+  // se o servidor (ack/echo) não devolveu a expressão, mantém a da mensagem local
+  next[i] = m.expression === undefined && list[i].expression ? { ...m, expression: list[i].expression } : m;
   return next;
 };
 
@@ -116,6 +118,14 @@ export const useChatStore = create((set, get) => {
       })
     );
 
+    // quem enviou o pedido cancelou: some o pedido recebido
+    s.on("friend:cancelled", ({ id }) =>
+      set((st) => {
+        const entry = Object.values(st.contacts).find((c) => c.requestId === id);
+        return entry ? { contacts: omit(st.contacts, entry.conversationId) } : st;
+      })
+    );
+
     // alguém (ou outra aba/dispositivo seu) trocou de personagem
     s.on("profile:updated", ({ playerId, portrait, icon }) =>
       set((st) => {
@@ -185,7 +195,8 @@ export const useChatStore = create((set, get) => {
     // Troca de personagem (THREADS): atualiza na hora e desfaz se o backend recusar
     async setCharacter({ portrait, icon }) {
       const prev = get().me;
-      set((s) => ({ me: { ...s.me, portrait, icon } }));
+      // a pose escolhida é do personagem antigo: volta para "default" ao trocar
+      set((s) => ({ me: { ...s.me, portrait, icon }, compose: { ...s.compose, expression: "default" } }));
       try {
         const { user } = await api.setCharacter({ portrait, icon });
         set((s) => ({ me: { ...s.me, ...user } }));
@@ -194,6 +205,9 @@ export const useChatStore = create((set, get) => {
         throw e;
       }
     },
+
+    // ---------- composição (TalkMenu) ----------
+    setCompose: (patch) => set((s) => ({ compose: { ...s.compose, ...patch } })),
 
     // ---------- mensagens ----------
     async loadMessages(id, older = false) {
@@ -222,17 +236,19 @@ export const useChatStore = create((set, get) => {
       }
     },
 
-    sendMessage(conversationId, text, balloon = "round") {
-      const { me } = get();
+    // override: ação pontual que não mexe no compose (ex.: scribble do TalkMenu)
+    sendMessage(conversationId, text, override = {}) {
+      const { me, compose } = get();
+      const { balloon, expression } = { ...compose, ...override };
       const clientId = crypto.randomUUID();
       const temp = {
         id: `tmp-${clientId}`, conversationId, senderPlayerId: me.playerId,
-        text, balloon, deleted: false, createdAt: new Date().toISOString(),
+        text, balloon, expression, deleted: false, createdAt: new Date().toISOString(),
         clientId, sending: true,
       };
       set((s) => ({ messages: { ...s.messages, [conversationId]: upsert(s.messages[conversationId] ?? [], temp) } }));
 
-      getSocket().emit("message:send", { conversationId, text, balloon, clientId }, (ack) => {
+      getSocket().emit("message:send", { conversationId, text, balloon, expression, clientId }, (ack) => {
         set((s) => {
           const list = s.messages[conversationId] ?? [];
           const final = ack.ok ? ack.message : { ...temp, sending: false, failed: true, errorCode: ack.error?.code };
@@ -286,6 +302,18 @@ export const useChatStore = create((set, get) => {
       set((s) => ({
         contacts: omit(s.contacts, id),
         messages: omit(s.messages, id),
+        lastConversationId: s.lastConversationId === id ? null : s.lastConversationId,
+      }));
+    },
+
+    // cancela um pedido que VOCÊ enviou (pending_out)
+    async cancelRequest(id) {
+      const c = get().contacts[id];
+      await api.cancelRequest(c.requestId);
+      set((s) => ({
+        contacts: omit(s.contacts, id),
+        messages: omit(s.messages, id),
+        cursors: omit(s.cursors, id),
         lastConversationId: s.lastConversationId === id ? null : s.lastConversationId,
       }));
     },

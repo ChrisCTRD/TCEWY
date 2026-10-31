@@ -7,6 +7,11 @@ import Portrait from "./Portrait";
 import Balloon from "./Balloon";
 import "./talk.css";
 import { fxUrl } from "./assets";
+import { useKeys } from "./useKeys";
+import TalkMenu from "./TalkMenu";
+import ChatLog from "./ChatLog";
+import HudKeys from "./HudKeys";
+import "./talkmenu.css";
 
 const EMPTY = [];
 const NO_KEYS = new Set();
@@ -27,10 +32,23 @@ export default function TalkLayer({ conversationId, blurred }) {
   const loadMessages = useChatStore((s) => s.loadMessages);
   const sendMessage = useChatStore((s) => s.sendMessage);
   const [draft, setDraft] = useState("");
+  const [panel, setPanel] = useState(null); // null | "talk" | "log"
   const sectionRef = useRef(null);
   const fxSrc = useMemo(() => fxUrl(conversationId), [conversationId]);
 
   const hasContact = !!contact;
+  const writable = hasContact && canSend(contact);
+
+  // E = menu de balão/portrait · Ctrl esq. = Chat Log · Tab/Esc = Menu principal
+  // (só com a conversa em foco: o Menu aberto desfoca esta camada; os painéis têm os próprios atalhos)
+  useKeys(
+    {
+      KeyE: () => writable && setPanel("talk"),
+      ControlLeft: () => setPanel("log"),
+      "Tab,Escape": () => navigate("/chat"),
+    },
+    hasContact && !blurred && panel === null
+  );
   useEffect(() => {
     if (conversationId && hasContact && !loaded) loadMessages(conversationId, false, 2);
   }, [conversationId, hasContact, loaded, loadMessages]);
@@ -65,8 +83,6 @@ export default function TalkLayer({ conversationId, blurred }) {
 
   if (!contact) return <section className="talk" data-blurred={blurred} />;
 
-  const writable = canSend(contact);
-
   // durante a intro não há balão (nem a pose que ele forçaria, ex.: scribble -> annoyed).
   // Se as mensagens ainda estiverem carregando quando a intro acabar, o balão entra assim que chegarem.
   const visible = showBalloons ? messages : EMPTY;
@@ -86,6 +102,7 @@ export default function TalkLayer({ conversationId, blurred }) {
       className="talk dm"
       data-blurred={blurred}
       data-intro={intro || undefined}
+      data-menu={panel || undefined}
       aria-hidden={blurred}
     >
       <div className="dm__bg" aria-hidden="true" />
@@ -117,9 +134,17 @@ export default function TalkLayer({ conversationId, blurred }) {
         })}
       </div>
 
-      {/* pins: esquerdo = contato (decorativo), direito = abre o Menu */}
+      {/* pins: esquerdo = contato (decorativo), direito = abre o menu de balão/portrait (E) */}
       <span className="dm__pin" data-side="them" aria-hidden="true" />
-      <button className="dm__pin" data-side="me" aria-label="Menu" onClick={() => navigate("/chat")} />
+      <button
+        className="dm__pin"
+        data-side="me"
+        aria-label="Balloons and portraits (E)"
+        disabled={!writable}
+        onClick={() => setPanel("talk")}
+      />
+
+      <HudKeys onLog={() => setPanel("log")} onMenu={() => navigate("/chat")} />
 
       <input
         className="dm__input"
@@ -134,6 +159,8 @@ export default function TalkLayer({ conversationId, blurred }) {
           }
         }}
       />
+      {panel === "talk" && <TalkMenu conversationId={conversationId} onClose={() => setPanel(null)} />}
+      {panel === "log" && <ChatLog conversationId={conversationId} onClose={() => setPanel(null)} />}
     </section>
   );
 }

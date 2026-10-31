@@ -3,16 +3,18 @@ import ChatNavbar from "./ChatNavbar";
 import SocialNetworkTab from "./SocialNetworkTab";
 import ArchivesTab from "./ArchivesTab";
 import ThreadsTab from "./ThreadsTab";
+import { useKeys } from "./useKeys";
 
 // ordem das "telas" da esquerda para a direita (define o sentido do efeito)
 const ORDER = ["threads", "thoughts/social", "thoughts/mental", "archive/settings", "archive/guide"];
-const TABS = ["threads", "thoughts", "archive"]; // abas do topo, em ordem (para Q/W em loop)
+const TABS = ["threads", "thoughts", "archive"]; // abas do topo, em ordem (para Q/E em loop)
 const DEFAULT_SUB = { thoughts: "social", archive: "settings" }; // abas com sub-abas e a sub padrão de cada uma
+const SUBS = { thoughts: ["social", "mental"], archive: ["settings", "guide"] };
 const WIPE_MS = 300; // precisa bater com a duração no CSS
 const keyOf = (v) => (DEFAULT_SUB[v.tab] ? `${v.tab}/${v.sub}` : v.tab);
 
 // lado do bounce da seta ao clicar direto numa aba: THREADS = esquerda, ARCHIVE = direita, THOUGHTS = sentido de onde veio
-// (Q/W/setas não usam isto: o bounce segue a tecla, ver go)
+// (Q/E/setas não usam isto: o bounce segue a tecla, ver go)
 function bounceDir(from, to) {
   if (to === "threads") return "left";
   if (to === "archive") return "right";
@@ -34,11 +36,11 @@ export default function MenuOverlay({ open }) {
 
   useEffect(() => () => clearTimeout(timer.current), []);
 
-  // forceDir: sentido do efeito imposto por Q/W/setas (vale também no loop ARCHIVE <-> THREADS)
+  // forceDir: sentido do efeito imposto por Q/E/setas (vale também no loop ARCHIVE <-> THREADS)
   function go(next, forceDir) {
     if (wipe || keyOf(next) === keyOf(view)) return;
     if (next.tab !== view.tab) {
-      // Q/W/setas: a seta quica para o lado da tecla (W/» = direita, Q/« = esquerda), inclusive no loop,
+      // Q/E/setas: a seta quica para o lado da tecla (E/» = direita, Q/« = esquerda), inclusive no loop,
       // sempre no mesmo sentido do efeito. Clique direto na aba: lado da aba escolhida.
       const side = forceDir ? (forceDir === "ltr" ? "right" : "left") : bounceDir(view.tab, next.tab);
       setBounce((b) => ({ dir: side, n: (b?.n ?? 0) + 1 }));
@@ -56,24 +58,28 @@ export default function MenuOverlay({ open }) {
   // troca de aba em loop: delta -1 (esquerda) / +1 (direita)
   function cycle(delta) {
     const i = TABS.indexOf(view.tab);
-    // direita (W / seta ») = faixa da esquerda para a direita; esquerda (Q / seta «) = ao contrário
+    // direita (E / seta ») = faixa da esquerda para a direita; esquerda (Q / seta «) = ao contrário
     go(tabView(TABS[(i + delta + TABS.length) % TABS.length]), delta > 0 ? "ltr" : "rtl");
   }
 
-  // atalhos: Q = esquerda, W = direita (o Espaço = BACK fica no ActionBar)
-  const keys = useRef();
-  keys.current = { cycle };
-  useEffect(() => {
-    if (!open) return;
-    const onKey = (e) => {
-      if (e.repeat || e.ctrlKey || e.metaKey || e.altKey) return;
-      if (e.target.closest?.("input, textarea, select, [contenteditable]")) return; // não atrapalha a digitação
-      if (e.code === "KeyQ") keys.current.cycle(-1);
-      else if (e.code === "KeyW") keys.current.cycle(1);
-    };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
+  // sub-aba em loop (Social Network <-> Mental Notes, Settings <-> Guide)
+  function cycleSub(delta) {
+    const subs = SUBS[view.tab];
+    if (!subs) return;
+    const i = subs.indexOf(view.sub);
+    go({ tab: view.tab, sub: subs[(i + delta + subs.length) % subs.length] });
+  }
+
+  // atalhos: Q/E = abas do topo, Ctrl esq. / Alt esq. = sub-abas (o Espaço = BACK fica no ActionBar)
+  useKeys(
+    {
+      KeyQ: () => cycle(-1),
+      KeyE: () => cycle(1),
+      ControlLeft: () => cycleSub(-1),
+      AltLeft: () => cycleSub(1),
+    },
+    open
+  );
 
   return (
     <nav className="menu" data-open={open} aria-hidden={!open}>
