@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import './Login.css'
+import './Auth.css'
 import { BASE } from './chat/api'
 
 export default function Register() {

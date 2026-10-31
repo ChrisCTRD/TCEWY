@@ -1,3 +1,28 @@
+/* ── Navbar (Home / About / TOS) ── */
+.info-navbar {
+  display: flex;
+  gap: 8px;
+  background: #000;
+  padding: 20px 100px;
+  justify-content: center;
+}
+
+.info-nav-item {
+  padding: 4px 80px;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  font-size: 1.3rem;
+  border: 2px solid #444;
+  background: #000000;
+}
+
+.info-nav-item.active {
+  border: 2px solid #00b5a3;
+  background: #0d3d38;
+  color: white;
+}
+
 /* ── Section visibility (Home / About / TOS share one page) ── */
 .info-section {
   display: block;
@@ -230,4 +255,91 @@
   font-size: 0.75rem;
   color: #555555;
   line-height: 1.6;
+}
+
+/* ── Mobile (mantenha o breakpoint igual ao de useIsMobile.js) ── */
+@media (max-width: 768px) {
+  .info-navbar {
+    padding: 12px 8px;
+    gap: 4px;
+  }
+
+  .info-nav-item {
+    flex: 1;
+    padding: 8px 0;
+    font-size: 1rem;
+    text-align: center;
+  }
+
+  /* login indisponível no mobile por enquanto */
+  .info-nav-item--login {
+    display: none;
+  }
+
+  /* Home */
+  .logo {
+    width: 80%;
+    margin-top: 1.5rem;
+  }
+
+  .tagline {
+    flex-direction: column;
+    width: 88%;
+    gap: 1rem;
+    text-align: center;
+  }
+
+  .tagline-left,
+  .tagline-right {
+    flex: none;
+    text-align: center;
+    font-size: 1.4rem;
+  }
+
+  .changelog {
+    width: 88%;
+    margin-top: 2rem;
+  }
+
+  /* About */
+  .spoiler-warning {
+    padding: 1.25rem 1rem;
+  }
+
+  .opin-icon {
+    width: 110px;
+    height: 110px;
+  }
+
+  .spoiler-text {
+    font-size: 1rem;
+  }
+
+  .about-content {
+    flex-direction: column;
+    width: 90%;
+    gap: 1.5rem;
+  }
+
+  .about-text {
+    font-size: 1rem;
+    line-height: 1.7;
+  }
+
+  .about-artwork {
+    width: 100%;
+  }
+
+  /* TOS */
+  .tos-content {
+    width: 90%;
+  }
+
+  .tos-title {
+    font-size: 1.5rem;
+  }
+
+  .footer {
+    padding: 1.25rem 1rem;
+  }
 }

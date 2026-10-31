@@ -1,0 +1,48 @@
+.desktop-only {
+  min-height: 100vh;
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem 1.5rem;
+  text-align: center;
+  background: #000;
+}
+
+.desktop-only-logo {
+  width: min(320px, 80%);
+  height: auto;
+  margin-bottom: 1rem;
+}
+
+.desktop-only-title {
+  font-size: 1.6rem;
+  color: var(--color-white, #fff);
+}
+
+.desktop-only-text {
+  max-width: 32ch;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--color-gray, #aaa);
+}
+
+.desktop-only-btn {
+  margin-top: 0.5rem;
+  padding: 0.6rem 2rem;
+  background: var(--color-white, #fff);
+  color: #000;
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  font-weight: 700;
+  text-decoration: none;
+  border-radius: 0 8px 0 8px;
+  box-shadow: 4px 4px 0 #000;
+}
+
+.desktop-only-btn:active {
+  background: #ccc;
+  box-shadow: 1px 1px 0 #000;
+  transform: translate(3px, 3px);
+}

@@ -55,7 +55,7 @@ export default function InfoPage() {
                         </p>
                         <br />
                         <p>
-                            All game assets used in this project — including character portraits, backgrounds, and visual elements — belong to <strong>Square Enix</strong>. Instrumental music, where present, is used non-commercially with full credit to composer <strong>Takeharu Ishimoto</strong>.
+                            All game assets used in this project — including character portraits, backgrounds, and visual elements — belong to <strong>Square Enix</strong>.
                         </p>
                         <br />
                         <p>

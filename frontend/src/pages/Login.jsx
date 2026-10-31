@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { useChatStore } from './chat/chatStore'
-import './Login.css'
+import './Auth.css'
 import { BASE } from './chat/api'
 
 export default function Login() {
