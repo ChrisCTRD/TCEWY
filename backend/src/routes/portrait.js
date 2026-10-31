@@ -17,9 +17,15 @@ router.get('/', auth, async (req, res) => {
   res.set({ ETag: `"${doc.assetId}"`, 'Cache-Control': 'private, no-cache' });
   if (req.fresh) return res.status(304).end(); // mesma versão: não baixa nada do Supabase
 
-  const buffer = await downloadFile(doc.storageKey);
-  res.set('Content-Type', doc.contentType);
-  res.send(buffer);
+  let buffer
+  try {
+    buffer = await downloadFile(doc.storageKey)
+  } catch (err) {
+    console.error('portrait download failed:', doc.character, doc.expression, doc.storageKey, err.message)
+    return res.sendStatus(502)
+  }
+  res.set('Content-Type', doc.contentType)
+  res.send(buffer)
 });
 
 module.exports = router;
