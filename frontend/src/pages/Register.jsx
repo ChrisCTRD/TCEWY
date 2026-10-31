@@ -80,7 +80,22 @@ export default function Register() {
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-field">
-              <label htmlFor="playerId">Player ID:</label>
+              <div className="auth-label-row">
+                <label htmlFor="playerId">Player ID:</label>
+                <span className="auth-help">
+                  <button
+                    type="button"
+                    className="auth-help-btn"
+                    aria-label="What is a Player ID?"
+                    aria-describedby="playerid-help"
+                  >
+                    ?
+                  </button>
+                  <span id="playerid-help" role="tooltip" className="auth-help-tip">
+                    Your Player ID is your unique handle, like @username. Friends use it to find and add you. It is always lowercase and cannot contain the @ symbol.
+                  </span>
+                </span>
+              </div>
               <input
                 id="playerId"
                 name="playerId"

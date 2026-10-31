@@ -151,3 +151,62 @@
   line-height: 1.6;
   margin: 0;
 }
+/* ── Help tooltip (?) ── */
+.auth-label-row {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.auth-help {
+  position: relative;
+  display: inline-flex;
+}
+
+.auth-help-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  border: 1px solid #777;
+  border-radius: 50%;
+  background: transparent;
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  font-family: inherit;
+  line-height: 1;
+  cursor: help;
+}
+
+.auth-help-btn:hover,
+.auth-help-btn:focus-visible {
+  border-color: #3a9fd8;
+  color: #3a9fd8;
+  outline: none;
+}
+
+.auth-help-tip {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  z-index: 10;
+  width: 230px;
+  padding: 0.6rem 0.75rem;
+  background: #fff;
+  color: #000;
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.45;
+  border-radius: 0 8px 0 8px;
+  box-shadow: 4px 4px 0 #000;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s;
+  pointer-events: none;
+}
+
+.auth-help:hover .auth-help-tip,
+.auth-help:focus-within .auth-help-tip {
+  opacity: 1;
+  visibility: visible;
+}
