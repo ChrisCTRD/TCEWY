@@ -9,6 +9,12 @@ const EXPR = /^[a-z0-9]{1,20}$/;
 // GET /api/portraits?char=neku&e=default
 // O front pede a expressão pelo NOME; o ID ofuscado nunca sai do servidor.
 router.get('/', auth, async (req, res) => {
+
+  const char = String(req.query.char || '');
+  const e = String(req.query.e || 'default');
+
+  if (!CHARS.includes(char) || !EXPR.test(e)) return res.sendStatus(400);
+
   let doc = await Portrait.findOne({ character: char, expression: e });
   if (!doc) doc = await Portrait.findOne({ character: char, expression: 'default' });
   if (!doc) return res.sendStatus(404);
