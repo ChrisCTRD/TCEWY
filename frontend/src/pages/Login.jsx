@@ -5,7 +5,6 @@ import './Auth.css'
 import { BASE } from './chat/api'
 
 export default function Login() {
-  const [usePlayerId, setUsePlayerId] = useState(false)
   const [identifier, setIdentifier] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
@@ -13,21 +12,17 @@ export default function Login() {
   
   const navigate = useNavigate()
 
-  const handleToggle = () => {
-    setUsePlayerId(prev => !prev)
-    setIdentifier('')
-    setError('')
-  }
-
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
     try {
-      const body = usePlayerId
-        ? { playerId: identifier, password }
-        : { email: identifier, password }
+      // um único campo: se tem "@" é email, senão é PlayerID (ambos sempre em minúsculo)
+      const value = identifier.trim().toLowerCase()
+      const body = value.includes('@')
+        ? { email: value, password }
+        : { playerId: value, password }
 
       const res = await fetch(`${BASE}/api/auth/login`, {
         method: 'POST',
@@ -68,25 +63,14 @@ export default function Login() {
 
           <form onSubmit={handleSubmit} className="auth-form">
             <div className="auth-field">
-              <div className="auth-field-header">
-                <label htmlFor="identifier">
-                  {usePlayerId ? 'Player ID:' : 'Email:'}
-                </label>
-                <button
-                  type="button"
-                  className="auth-toggle-link"
-                  onClick={handleToggle}
-                >
-                  {usePlayerId ? 'Change to Email' : 'Change to PlayerID'}
-                </button>
-              </div>
+              <label htmlFor="identifier">Email or Player ID:</label>
               <input
                 id="identifier"
-                type={usePlayerId ? 'text' : 'email'}
+                type="text"
                 value={identifier}
-                onChange={e => setIdentifier(e.target.value)}
+                onChange={e => { setIdentifier(e.target.value); setError('') }}
                 className="auth-input"
-                autoComplete={usePlayerId ? 'username' : 'email'}
+                autoComplete="username"
                 required
               />
             </div>

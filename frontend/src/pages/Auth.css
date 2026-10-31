@@ -49,12 +49,6 @@
   gap: 0.3rem;
 }
 
-.auth-field-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: baseline;
-}
-
 .auth-field label {
   font-size: 0.85rem;
   color: #fff;
@@ -77,22 +71,6 @@
 .auth-input:focus {
   outline: 2px solid #3a9fd8;
   outline-offset: 0;
-}
-
-/* ── Toggle link ── */
-.auth-toggle-link {
-  background: none;
-  border: none;
-  cursor: pointer;
-  font-size: 0.72rem;
-  color: #3a9fd8;
-  padding: 0;
-  text-decoration: underline;
-  font-family: inherit;
-}
-
-.auth-toggle-link:hover {
-  color: #6dc4f0;
 }
 
 /* ── Error ── */

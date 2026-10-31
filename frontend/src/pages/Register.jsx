@@ -14,21 +14,40 @@ export default function Register() {
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
 
+  // Player ID e email são sempre salvos em minúsculo
+  const LOWERCASE_FIELDS = ['playerId', 'email']
+
   const handleChange = (e) => {
-    setForm(prev => ({ ...prev, [e.target.name]: e.target.value }))
+    const { name, value } = e.target
+    const next = LOWERCASE_FIELDS.includes(name) ? value.toLowerCase() : value
+    setForm(prev => ({ ...prev, [name]: next }))
     setError('')
   }
 
   const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
+
+    // "@" separa email de Player ID no login, então não pode existir no ID
+    if (form.playerId.includes('@')) {
+      setError('Player ID cannot contain "@".')
+      return
+    }
+
     setLoading(true)
 
     try {
+      const payload = {
+        ...form,
+        playerId: form.playerId.trim().toLowerCase(),
+        email: form.email.trim().toLowerCase(),
+        displayName: form.displayName.trim()
+      }
+
       const res = await fetch(`${BASE}/api/auth/register`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(form)
+        body: JSON.stringify(payload)
       })
 
       const data = await res.json()
