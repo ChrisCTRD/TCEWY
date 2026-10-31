@@ -45,10 +45,10 @@ const onConnection = (socket) => {
   const allowDelete = createWindowLimiter(SEND_LIMIT, SEND_WINDOW_MS)
 
   // Handlers go in first so an event fired right after connect is never missed.
-  socket.on('message:send', withAck(async ({ conversationId, text, balloon, clientId }) => {
-    if (!allowSend()) throw errors.rateLimited()
-    const message = await sendMessage({ userId, playerId, conversationId, text, balloon, clientId })
-    return { message }
+  socket.on('message:send', withAck(async ({ conversationId, text, balloon, expression, clientId }) => {
+  if (!allowSend()) throw errors.rateLimited()
+  const message = await sendMessage({ userId, playerId, conversationId, text, balloon, expression, clientId })
+  return { message }
   }))
 
   socket.on('message:delete', withAck(async ({ messageId }) => {

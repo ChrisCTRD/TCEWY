@@ -16,16 +16,19 @@ const {
   joinConversation
 } = require('../socket/realtime')
 
+const EXPRESSION_REGEX = /^[a-z0-9]{1,20}$/
+const parseExpression = (value) =>
+  typeof value === 'string' && EXPRESSION_REGEX.test(value) ? value : 'default'
+
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 100
 
 
 // `userId` is a string, `playerId` the sender's public id.
-const sendMessage = async ({ userId, playerId, conversationId, text, balloon, clientId }) => {
-  
+const sendMessage = async ({ userId, playerId, conversationId, text, balloon, expression, clientId }) => {
+
   const balloonValue = parseBalloon(balloon)
-  const cleanText = sanitizeMessageText(text, balloonValue)
-  const clientIdValue = parseClientId(clientId)
+  const expressionValue = parseExpression(expression)
 
 
   const access = requireReadable(await getAccess(userId, conversationId))
@@ -46,8 +49,9 @@ const sendMessage = async ({ userId, playerId, conversationId, text, balloon, cl
       senderId: userId,
       text: cleanText,
       balloon: balloonValue,
+      expression: expressionValue,
       ...(clientIdValue ? { clientId: clientIdValue } : {})
-    })
+  })
   } catch (err) {
     if (err.code === 11000 && clientIdValue) {
       const existing = await Message.findOne({ conversationId: conversation._id, senderId: userId, clientId: clientIdValue })

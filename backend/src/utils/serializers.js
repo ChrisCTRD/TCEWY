@@ -36,6 +36,7 @@ const toMessage = (message, senderPlayerId) => {
     senderPlayerId,
     text: deleted ? '' : message.text,
     balloon: deleted ? 'scribble' : message.balloon,
+    expression: message.expression || 'default',
     deleted,
     createdAt: iso(message.createdAt),
     clientId: message.clientId ?? null

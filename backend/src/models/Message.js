@@ -14,6 +14,7 @@ const messageSchema = new mongoose.Schema({
     maxlength: 1000
   },
   balloon: { type: String, enum: BALLOONS, default: 'round' },
+  expression: { type: String, maxlength: 20, default: 'default' },
   deletedAt: { type: Date, default: null },
   clientId: { type: String, maxlength: 100 } // omitted when the client does not send one
 }, { timestamps: { createdAt: true, updatedAt: false } })
