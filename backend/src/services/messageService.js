@@ -19,11 +19,14 @@ const {
 const DEFAULT_LIMIT = 50
 const MAX_LIMIT = 100
 
+
 // `userId` is a string, `playerId` the sender's public id.
 const sendMessage = async ({ userId, playerId, conversationId, text, balloon, clientId }) => {
-  const cleanText = sanitizeMessageText(text)
+  
   const balloonValue = parseBalloon(balloon)
+  const cleanText = sanitizeMessageText(text, balloonValue)
   const clientIdValue = parseClientId(clientId)
+
 
   const access = requireReadable(await getAccess(userId, conversationId))
   const { conversation } = access

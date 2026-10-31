@@ -6,7 +6,13 @@ const { ObjectId } = mongoose.Schema.Types
 const messageSchema = new mongoose.Schema({
   conversationId: { type: ObjectId, ref: 'Conversation', required: true },
   senderId: { type: ObjectId, ref: 'User', required: true },
-  text: { type: String, required: true, trim: true, maxlength: 1000 },
+  text: {
+    type: String,
+    required: function () { return this.balloon !== 'scribble' },
+    default: '',
+    trim: true,
+    maxlength: 1000
+  },
   balloon: { type: String, enum: BALLOONS, default: 'round' },
   deletedAt: { type: Date, default: null },
   clientId: { type: String, maxlength: 100 } // omitted when the client does not send one

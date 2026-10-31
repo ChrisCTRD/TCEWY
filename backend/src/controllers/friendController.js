@@ -185,6 +185,25 @@ const declineRequest = async (req, res) => {
   res.json({ ok: true })
 }
 
+const cancelRequest = async (req, res) => {
+  const me = req.me
+  if (!isObjectId(req.params.id)) throw errors.requestNotFound()
+
+  // Not found / not yours / already accepted or removed all end in the same 404 (no existence leak).
+  const friendship = await Friendship.findOneAndDelete({ _id: req.params.id, requester: me._id, status: 'pending' })
+  if (!friendship) throw errors.requestNotFound()
+
+  const conversation = await Conversation.findOne({ pairKey: friendship.pairKey })
+  if (conversation) {
+    await updateStates(conversation._id, conversation.participants, { closed: true, closedAt: new Date() })
+    leaveConversation(friendship.requester, conversation._id)
+    leaveConversation(friendship.recipient, conversation._id)
+  }
+
+  emitToUser(friendship.recipient, 'friend:cancelled', { id: String(friendship._id) })
+  res.json({ ok: true })
+}
+
 // DELETE /api/friends/:playerId  -> { ok, playerId, conversationId, status: 'disconnected' }
 // The friendship is kept as `removed`; the conversation stays (read-only for both).
 const removeFriend = async (req, res) => {
@@ -216,4 +235,4 @@ const removeFriend = async (req, res) => {
   })
 }
 
-module.exports = { getFriends, getRequests, createRequest, acceptRequest, declineRequest, removeFriend }
+module.exports = { getFriends, getRequests, createRequest, acceptRequest, declineRequest, cancelRequest, removeFriend }

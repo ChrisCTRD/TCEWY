@@ -9,6 +9,7 @@ const {
   createRequest,
   acceptRequest,
   declineRequest,
+  cancelRequest,
   removeFriend
 } = require('../controllers/friendController')
 const {
@@ -32,6 +33,7 @@ router.get('/friends/requests', getRequests)
 router.post('/friends/requests', rateLimit({ limit: 15, windowMs: 60_000 }), createRequest)
 router.post('/friends/requests/:id/accept', acceptRequest)
 router.post('/friends/requests/:id/decline', declineRequest)
+router.post('/friends/requests/:id/cancel', cancelRequest)
 router.delete('/friends/:playerId', removeFriend)
 
 router.get('/conversations', listConversations)

@@ -6,8 +6,6 @@ const PLAYER_ID_REGEX = /^[a-z0-9_]{3,20}$/
 const OBJECT_ID_REGEX = /^[0-9a-fA-F]{24}$/
 
 const BALLOONS = ['round', 'square', 'shouting', 'thought', 'scribble', 'small']
-// `scribble` is reserved for deleted messages; clients cannot send it.
-const SENDABLE_BALLOONS = BALLOONS.filter((b) => b !== 'scribble')
 
 const MESSAGE_MAX = 1000
 const BIO_MAX = 200
@@ -41,7 +39,9 @@ const cleanText = (raw) => {
   return text.trim()
 }
 
-const sanitizeMessageText = (raw) => {
+// A scribble carries no text: whatever the client sent is dropped. Every other balloon requires text.
+const sanitizeMessageText = (raw, balloon = 'round') => {
+  if (balloon === 'scribble') return ''
   if (typeof raw !== 'string') throw errors.validation('text must be a string')
   if (raw.length > RAW_TEXT_MAX) throw errors.validation(`text must be at most ${MESSAGE_MAX} characters`)
   const text = cleanText(raw)
@@ -52,11 +52,12 @@ const sanitizeMessageText = (raw) => {
 
 const parseBalloon = (value) => {
   if (value === undefined || value === null) return 'round'
-  if (typeof value !== 'string' || !SENDABLE_BALLOONS.includes(value)) {
-    throw errors.validation(`balloon must be one of: ${SENDABLE_BALLOONS.join(', ')}`)
+  if (typeof value !== 'string' || !BALLOONS.includes(value)) {
+    throw errors.validation(`balloon must be one of: ${BALLOONS.join(', ')}`)
   }
   return value
 }
+
 
 const parseClientId = (value) => {
   if (value === undefined || value === null) return null
