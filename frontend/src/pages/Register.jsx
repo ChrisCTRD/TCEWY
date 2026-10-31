@@ -12,6 +12,7 @@ export default function Register() {
   })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [accepted, setAccepted] = useState(false)
   const navigate = useNavigate()
 
   // Player ID e email são sempre salvos em minúsculo
@@ -31,6 +32,11 @@ export default function Register() {
     // "@" separa email de Player ID no login, então não pode existir no ID
     if (form.playerId.includes('@')) {
       setError('Player ID cannot contain "@".')
+      return
+    }
+
+    if (!accepted) {
+      setError('You need to accept the Terms of Service to create an account.')
       return
     }
 
@@ -149,6 +155,22 @@ export default function Register() {
                 required
               />
             </div>
+
+            <label className="auth-check">
+              <input
+                type="checkbox"
+                checked={accepted}
+                onChange={(e) => { setAccepted(e.target.checked); setError('') }}
+                required
+              />
+              <span>
+                I am 13 or older and I agree to the{' '}
+                <Link to="/tos" target="_blank" className="auth-link">
+                  Terms of Service
+                </Link>
+                .
+              </span>
+            </label>
 
             {error && <p className="auth-error">{error}</p>}
 
